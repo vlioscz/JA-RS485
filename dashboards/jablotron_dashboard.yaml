@@ -1,0 +1,66 @@
+title: Jablotron Control
+views:
+  - title: Jablotron
+    path: jablotron
+    icon: mdi:shield
+    cards:
+
+      - type: custom:vertical-stack-in-card
+        title: Zóny
+        cards:
+          - type: custom:auto-entities
+            card:
+              type: grid
+              columns: 2
+              square: false
+            filter:
+              include:
+                - domain: sensor
+                  entity_id: sensor.jablotron_zone_*
+            sort:
+              method: name
+            card_param:
+              type: button
+              tap_action:
+                action: call-service
+                service: >
+                  [[[
+                    if (entity.state == "DISARMED") return "jablotron_ascii.set_zone";
+                    else return "jablotron_ascii.unset_zone";
+                  ]]]
+                service_data:
+                  zone_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"
+              name: "[[[ return entity.attributes.friendly_name; ]]]"
+              show_state: true
+              state_color: true
+              icon: mdi:shield-lock
+
+      - type: custom:vertical-stack-in-card
+        title: PG Výstupy
+        cards:
+          - type: custom:auto-entities
+            card:
+              type: grid
+              columns: 2
+              square: false
+            filter:
+              include:
+                - domain: sensor
+                  entity_id: sensor.jablotron_pg_*
+            sort:
+              method: name
+            card_param:
+              type: button
+              tap_action:
+                action: call-service
+                service: >
+                  [[[
+                    if (entity.state == "OFF") return "jablotron_ascii.pgon";
+                    else return "jablotron_ascii.pgoff";
+                  ]]]
+                service_data:
+                  pg_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"
+              name: "[[[ return entity.attributes.friendly_name; ]]]"
+              show_state: true
+              state_color: true
+              icon: mdi:light-switch

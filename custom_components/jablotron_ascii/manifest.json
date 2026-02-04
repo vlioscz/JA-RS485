@@ -1,0 +1,10 @@
+{
+  "domain": "jablotron_ascii",
+  "name": "Jablotron RS485 ASCII",
+  "version": "1.3.0",
+  "documentation": "https://example.com",
+  "requirements": ["pyserial==3.5"],
+  "dependencies": [],
+  "codeowners": [],
+  "config_flow": true
+}
