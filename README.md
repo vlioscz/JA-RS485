@@ -13,6 +13,13 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
   the panel confirms them
 - **Diagnostic sensor** per section with the raw JA-121T state (`READY`, `ARMED`, `ARMED_PART`,
   `BLOCKED`, `SERVICE`, …) and active flags as attributes
+- **Binary sensor** per peripheral (detector) decoded from the `PRFSTATE` bitmap — created
+  automatically on first activation, or select positions explicitly in the integration options
+  (numbers match the Devices tab in F-Link, 0 = control panel). Note: the protocol carries no
+  peripheral names or types — rename entities in HA as needed
+- **Entity filter** in the integration options — choose which sections, PG outputs and
+  peripherals become entities (state queries are not restricted by code permissions, so
+  everything the panel reports is visible by default)
 - Sections and PG outputs are **discovered automatically** from the bus (initial `STATE` / `PGSTATE`
   query + spontaneous reports); new ones appear as entities without a restart
 - **Push updates** — the JA-121T reports every change instantly; no polling

@@ -9,6 +9,7 @@ CONF_ACCESS_CODE = "access_code"
 # An empty/missing list means "expose everything the panel reports".
 CONF_SECTIONS = "sections"
 CONF_PG_OUTPUTS = "pg_outputs"
+CONF_PERIPHERALS = "peripherals"
 
 ATTR_ZONE_ID = "zone_id"
 ATTR_PG_ID = "pg_id"
@@ -19,9 +20,11 @@ SERVICE_UNSET_ZONE = "unset_zone"
 SERVICE_PGON = "pgon"
 SERVICE_PGOFF = "pgoff"
 
-# Limits per the JA-121T manual (MNN51111): sections 1-15, PG outputs 1-128.
+# Limits per the JA-121T manual (MNN51111): sections 1-15, PG outputs 1-128,
+# peripherals 0-229 (position 0 is the control panel).
 MAX_SECTION = 15
 MAX_PG = 128
+MAX_PERIPHERAL = 229
 
 MANUFACTURER = "Jablotron"
 MODEL = "JA-121T"
@@ -40,3 +43,13 @@ def is_section_allowed(options: dict, section_id: int) -> bool:
 def is_pg_allowed(options: dict, pg_id: int) -> bool:
     selected = options.get(CONF_PG_OUTPUTS) or []
     return not selected or str(pg_id) in selected
+
+
+def is_peripheral_allowed(options: dict, peripheral_id: int) -> bool:
+    selected = options.get(CONF_PERIPHERALS) or []
+    return not selected or str(peripheral_id) in selected
+
+
+def selected_peripherals(options: dict) -> list[int]:
+    """Explicitly selected peripheral positions, or [] for auto-discovery."""
+    return sorted(int(v) for v in options.get(CONF_PERIPHERALS) or [])

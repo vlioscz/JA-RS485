@@ -43,6 +43,22 @@ views:
         sort:
           method: name
 
+      # Peripherals (detectors)
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 2
+          square: false
+        card_param: cards
+        filter:
+          include:
+            - domain: binary_sensor
+              entity_id: binary_sensor.jablotron_peripheral_*
+              options:
+                type: tile
+        sort:
+          method: name
+
       # Raw section states (diagnostic)
       - type: custom:auto-entities
         card:

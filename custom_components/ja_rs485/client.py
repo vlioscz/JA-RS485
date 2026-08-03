@@ -48,6 +48,27 @@ def _to_int(token: str) -> int | None:
         return None
 
 
+def _decode_prfstate(hex_str: str) -> set[int] | None:
+    """Decode a PRFSTATE hex bitmap into the set of active peripheral numbers.
+
+    Per manual MNN51111 figure 2: byte i (i-th hex pair) covers peripherals
+    8*i .. 8*i+7, LSB first — bit n of byte i set means peripheral 8*i+n is
+    active. Peripheral 0 is the control panel itself.
+    """
+    if len(hex_str) % 2:
+        return None
+    try:
+        raw = bytes.fromhex(hex_str)
+    except ValueError:
+        return None
+    active: set[int] = set()
+    for index, byte in enumerate(raw):
+        for bit in range(8):
+            if byte & (1 << bit):
+                active.add(index * 8 + bit)
+    return active
+
+
 class JaRs485Client(threading.Thread):
     """Reader/writer for the JA-121T with automatic reconnect."""
 
@@ -70,7 +91,9 @@ class JaRs485Client(threading.Thread):
         self._sections: dict[int, str] = {}
         self._section_flags: dict[int, set[str]] = {}
         self._pg: dict[int, bool] = {}
-        self._prfstate: str | None = None
+        self._prf_active: set[int] = set()
+        self._prf_seen: set[int] = set()
+        self._prf_received = False
 
     # ------------------------------------------------------------------
     # Thread-safe state accessors
@@ -103,6 +126,17 @@ class JaRs485Client(threading.Thread):
     def get_pg_state(self, pg_id: int) -> bool | None:
         with self._state_lock:
             return self._pg.get(pg_id)
+
+    def get_peripheral_ids(self) -> list[int]:
+        """Peripheral positions that have been active at least once."""
+        with self._state_lock:
+            return sorted(self._prf_seen)
+
+    def get_peripheral_state(self, peripheral_id: int) -> bool | None:
+        with self._state_lock:
+            if not self._prf_received:
+                return None
+            return peripheral_id in self._prf_active
 
     # ------------------------------------------------------------------
     # Commands
@@ -219,6 +253,9 @@ class JaRs485Client(threading.Thread):
             if self._stop_event.wait(2.0):
                 return
             self.send_command("PGSTATE")
+            if self._stop_event.wait(2.0):
+                return
+            self.send_command("PRFSTATE")
         except ConnectionError as err:
             _LOGGER.debug("Initial state query failed: %s", err)
 
@@ -304,9 +341,15 @@ class JaRs485Client(threading.Thread):
                         changed = True
                     self._pg[pg_id] = value
             elif head == "PRFSTATE" and len(parts) >= 2:
-                if self._prfstate != parts[1]:
-                    changed = True
-                self._prfstate = parts[1]
+                active = _decode_prfstate(parts[1])
+                if active is None:
+                    _LOGGER.debug("Invalid PRFSTATE payload: %s", parts[1])
+                else:
+                    if active != self._prf_active or not self._prf_received:
+                        changed = True
+                    self._prf_active = active
+                    self._prf_seen |= active
+                    self._prf_received = True
             elif head in SECTION_FLAGS and len(parts) >= 3 and parts[-1] in ("ON", "OFF"):
                 active = parts[-1] == "ON"
                 for token in parts[1:-1]:

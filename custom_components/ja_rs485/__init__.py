@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
     MAX_PG,
     MAX_SECTION,
+    is_peripheral_allowed,
     is_pg_allowed,
     is_section_allowed,
     SERVICE_PGOFF,
@@ -35,7 +36,12 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.ALARM_CONTROL_PANEL, Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [
+    Platform.ALARM_CONTROL_PANEL,
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 # Strict validation: only integers within the JA-121T documented ranges may
 # ever reach the serial line — this rules out command injection via services.
@@ -66,6 +72,9 @@ def _async_prune_registry(hass: HomeAssistant, entry: ConfigEntry) -> None:
                 ent_reg.async_remove(reg_entry.entity_id)
         elif match := re.search(r"_pg_(\d+)$", unique_id):
             if not is_pg_allowed(entry.options, int(match.group(1))):
+                ent_reg.async_remove(reg_entry.entity_id)
+        elif match := re.search(r"_peripheral_(\d+)$", unique_id):
+            if not is_peripheral_allowed(entry.options, int(match.group(1))):
                 ent_reg.async_remove(reg_entry.entity_id)
 
 

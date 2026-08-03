@@ -29,10 +29,11 @@
     "step": {
       "init": {
         "title": "Filtr entit",
-        "description": "Vyber, které sekce a PG výstupy se mají v Home Assistantu vytvářet jako entity (např. jen ty, ke kterým má přístupový kód práva). Prázdný výběr = zobrazit vše, co ústředna hlásí. Odebrané entity budou z HA odstraněny.",
+        "description": "Vyber, které sekce a PG výstupy se mají v Home Assistantu vytvářet jako entity (např. jen ty, ke kterým má přístupový kód práva). Prázdný výběr = zobrazit vše, co ústředna hlásí. Odebrané entity budou z HA odstraněny.\n\n**Periferie (čidla):** čísla pozic odpovídají záložce Zařízení v F-Linku (0 = ústředna). Prázdný výběr = čidla se vytvoří automaticky při první aktivaci; explicitní výběr vytvoří přesně zadané pozice hned.",
         "data": {
           "sections": "Sekce",
-          "pg_outputs": "PG výstupy"
+          "pg_outputs": "PG výstupy",
+          "peripherals": "Periferie (čidla)"
         }
       }
     }

@@ -26,10 +26,12 @@ from homeassistant.helpers.selector import (
 from .client import BAUDRATE
 from .const import (
     CONF_ACCESS_CODE,
+    CONF_PERIPHERALS,
     CONF_PG_OUTPUTS,
     CONF_PORT,
     CONF_SECTIONS,
     DOMAIN,
+    MAX_PERIPHERAL,
     MAX_PG,
     MAX_SECTION,
 )
@@ -130,10 +132,14 @@ def _validate_connection(port: str, access_code: str) -> None:
         ser.close()
 
 
-def _clean_id_list(values: list[str], max_value: int) -> list[str]:
+def _clean_id_list(values: list[str], max_value: int, min_value: int = 1) -> list[str]:
     """Keep only valid numeric ids within range (guards custom_value input)."""
     return sorted(
-        {v.strip() for v in values if v.strip().isdigit() and 1 <= int(v) <= max_value},
+        {
+            v.strip()
+            for v in values
+            if v.strip().isdigit() and min_value <= int(v) <= max_value
+        },
         key=int,
     )
 
@@ -215,18 +221,26 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                     CONF_PG_OUTPUTS: _clean_id_list(
                         user_input.get(CONF_PG_OUTPUTS, []), MAX_PG
                     ),
+                    CONF_PERIPHERALS: _clean_id_list(
+                        user_input.get(CONF_PERIPHERALS, []),
+                        MAX_PERIPHERAL,
+                        min_value=0,
+                    ),
                 }
             )
 
         client = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
         current_sections = list(self.config_entry.options.get(CONF_SECTIONS) or [])
         current_pgs = list(self.config_entry.options.get(CONF_PG_OUTPUTS) or [])
+        current_prf = list(self.config_entry.options.get(CONF_PERIPHERALS) or [])
 
         # Offer everything the panel currently reports plus already-selected ids.
         known_sections = [str(s) for s in client.get_section_ids()] if client else []
         known_pgs = [str(p) for p in client.get_pg_ids()] if client else []
+        known_prf = [str(p) for p in client.get_peripheral_ids()] if client else []
         section_options = sorted(set(known_sections) | set(current_sections), key=int)
         pg_options = sorted(set(known_pgs) | set(current_pgs), key=int)
+        prf_options = sorted(set(known_prf) | set(current_prf), key=int)
 
         schema = vol.Schema(
             {
@@ -241,6 +255,14 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(CONF_PG_OUTPUTS, default=current_pgs): SelectSelector(
                     SelectSelectorConfig(
                         options=pg_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(CONF_PERIPHERALS, default=current_prf): SelectSelector(
+                    SelectSelectorConfig(
+                        options=prf_options,
                         multiple=True,
                         custom_value=True,
                         mode=SelectSelectorMode.DROPDOWN,
