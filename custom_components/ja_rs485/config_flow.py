@@ -4,8 +4,8 @@ from .const import DOMAIN, CONF_PORT, CONF_BAUDRATE
 
 DEFAULT_BAUDRATE = 9600
 
-class JablotronAsciiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow pro Jablotron RS485 ASCII."""
+class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow pro JA-RS485 (Jablotron RS-485 ASCII)."""
 
     VERSION = 1
 

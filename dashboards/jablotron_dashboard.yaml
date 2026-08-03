@@ -1,4 +1,4 @@
-title: Jablotron Control
+﻿title: Jablotron Control
 views:
   - title: Jablotron
     path: jablotron
@@ -6,7 +6,7 @@ views:
     cards:
 
       - type: custom:vertical-stack-in-card
-        title: Zóny
+        title: ZĂłny
         cards:
           - type: custom:auto-entities
             card:
@@ -25,8 +25,8 @@ views:
                 action: call-service
                 service: >
                   [[[
-                    if (entity.state == "DISARMED") return "jablotron_ascii.set_zone";
-                    else return "jablotron_ascii.unset_zone";
+                    if (entity.state == "DISARMED") return "ja_rs485.set_zone";
+                    else return "ja_rs485.unset_zone";
                   ]]]
                 service_data:
                   zone_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"
@@ -36,7 +36,7 @@ views:
               icon: mdi:shield-lock
 
       - type: custom:vertical-stack-in-card
-        title: PG Výstupy
+        title: PG VĂ˝stupy
         cards:
           - type: custom:auto-entities
             card:
@@ -55,8 +55,8 @@ views:
                 action: call-service
                 service: >
                   [[[
-                    if (entity.state == "OFF") return "jablotron_ascii.pgon";
-                    else return "jablotron_ascii.pgoff";
+                    if (entity.state == "OFF") return "ja_rs485.pgon";
+                    else return "ja_rs485.pgoff";
                   ]]]
                 service_data:
                   pg_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"

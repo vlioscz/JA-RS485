@@ -1,4 +1,4 @@
-DOMAIN = "jablotron_ascii"
+DOMAIN = "ja_rs485"
 
 CONF_PORT = "port"
 CONF_BAUDRATE = "baudrate"

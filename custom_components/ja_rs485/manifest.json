@@ -1,8 +1,8 @@
 {
-  "domain": "jablotron_ascii",
-  "name": "Jablotron RS485 ASCII",
+  "domain": "ja_rs485",
+  "name": "JA-RS485",
   "version": "1.3.0",
-  "documentation": "https://example.com",
+  "documentation": "https://github.com/vlioscz/JA-RS485",
   "requirements": ["pyserial==3.5"],
   "dependencies": [],
   "codeowners": [],
