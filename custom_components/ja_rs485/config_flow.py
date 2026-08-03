@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 from typing import Any
@@ -31,6 +32,8 @@ CODE_RE = re.compile(r"^\d{1,4}(\*\d{1,8})?$|^\d{1,8}$")
 
 VALIDATE_TIMEOUT_S = 5.0
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class CannotConnect(Exception):
     """Serial port cannot be opened or communication failed."""
@@ -42,6 +45,10 @@ class InvalidAuth(Exception):
 
 class NoResponse(Exception):
     """Port opened but the JA-121T did not answer."""
+
+
+class UnexpectedData(Exception):
+    """Data arrived but did not match the JA-121T terminal protocol."""
 
 
 def _list_serial_ports() -> list[SelectOptionDict]:
@@ -67,6 +74,7 @@ def _validate_connection(port: str, access_code: str) -> None:
             write_timeout=2,
         )
     except (serial.SerialException, OSError, ValueError) as err:
+        _LOGGER.warning("Cannot open serial port %s: %s", port, err)
         raise CannotConnect(str(err)) from err
 
     try:
@@ -74,24 +82,40 @@ def _validate_connection(port: str, access_code: str) -> None:
         ser.write(f"{access_code} STATE\n".encode("ascii"))
         ser.flush()
         deadline = time.monotonic() + VALIDATE_TIMEOUT_S
-        got_data = False
+        seen: list[str] = []
         while time.monotonic() < deadline:
             raw = ser.readline()
             if not raw:
                 continue
-            got_data = True
             line = raw.decode("ascii", errors="ignore").strip()
+            seen.append(line or repr(raw))
             if line.startswith("STATE ") or line == "OK":
                 return  # valid answer to our STATE query
             if "NO_ACCESS" in line:
+                _LOGGER.warning("JA-121T on %s rejected the access code", port)
                 raise InvalidAuth
             if line.startswith("ERROR"):
+                _LOGGER.warning("JA-121T on %s answered: %s", port, line)
                 raise InvalidAuth
             # Any other line (spontaneous report) — keep listening.
-        if got_data:
-            raise CannotConnect("Unexpected data on the serial line")
+        if seen:
+            _LOGGER.warning(
+                "Port %s carries data that does not match the JA-121T terminal "
+                "protocol (module in U1-A mode? swapped A/B wires? wrong device?). "
+                "Received: %s",
+                port,
+                seen[:10],
+            )
+            raise UnexpectedData
+        _LOGGER.warning(
+            "No answer from JA-121T on %s within %.0f s — check wiring (A/B, GND), "
+            "the selected port and that the module's RS-485 side is powered",
+            port,
+            VALIDATE_TIMEOUT_S,
+        )
         raise NoResponse
     except (serial.SerialException, OSError) as err:
+        _LOGGER.warning("Communication on %s failed: %s", port, err)
         raise CannotConnect(str(err)) from err
     finally:
         ser.close()
@@ -126,6 +150,8 @@ class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "invalid_auth"
                 except NoResponse:
                     errors["base"] = "no_response"
+                except UnexpectedData:
+                    errors["base"] = "unexpected_data"
                 else:
                     return self.async_create_entry(
                         title=f"JA-121T ({port})",

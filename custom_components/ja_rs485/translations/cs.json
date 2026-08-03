@@ -18,6 +18,7 @@
       "cannot_connect": "Sériový port nelze otevřít nebo selhala komunikace.",
       "invalid_auth": "Ústředna odmítla přístupový kód (NO_ACCESS).",
       "no_response": "JA-121T neodpovídá — zkontrolujte zapojení (vodiče A/B) a zvolený port.",
+      "unexpected_data": "Na lince jsou data, ale neodpovídají terminálovému protokolu JA-121T — zkontrolujte, že modul má v F-Linku Základní režim řízení nastavený na Terminál (ne U1-A), a prověřte vodiče A/B.",
       "invalid_code_format": "Neplatný formát kódu — číslice s volitelným prefixem, např. 1*1234."
     },
     "abort": {

@@ -18,6 +18,7 @@
       "cannot_connect": "Cannot open the serial port or communication failed.",
       "invalid_auth": "The control panel rejected the access code (NO_ACCESS).",
       "no_response": "No response from the JA-121T — check the wiring (A/B lines) and the selected port.",
+      "unexpected_data": "Data received, but it does not match the JA-121T terminal protocol — make sure the module's basic mode is set to Terminal (not U1-A) in F-Link, and check the A/B wires.",
       "invalid_code_format": "Invalid code format — digits with an optional prefix, e.g. 1*1234."
     },
     "abort": {
