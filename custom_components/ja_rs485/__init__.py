@@ -20,6 +20,7 @@ from .const import (
     ATTR_ZONE_ID,
     CONF_ACCESS_CODE,
     CONF_PORT,
+    CONF_PRF_POLL_INTERVAL,
     DOMAIN,
     MAX_PG,
     MAX_SECTION,
@@ -102,7 +103,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except RuntimeError:
             pass  # loop already closed during shutdown
 
-    client = JaRs485Client(port, access_code, on_update=_on_update)
+    client = JaRs485Client(
+        port,
+        access_code,
+        on_update=_on_update,
+        prf_poll_interval=float(entry.options.get(CONF_PRF_POLL_INTERVAL, 0) or 0),
+    )
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
     client.start()
 

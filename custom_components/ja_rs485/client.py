@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from collections.abc import Callable
 
 import serial
@@ -25,6 +26,12 @@ WRITE_TIMEOUT_S = 2.0
 RECONNECT_DELAY_INITIAL_S = 5.0
 RECONNECT_DELAY_MAX_S = 60.0
 MAX_BUFFER_BYTES = 4096
+# Periodic full re-query: recovers states lost to half-duplex collisions
+# (e.g. the module's spontaneous PRFSTATE broadcast clobbering a PGSTATE
+# response on the shared pair).
+RESYNC_INTERVAL_S = 300.0
+# Gap between queued queries so each response can finish streaming first.
+QUERY_GAP_S = 2.0
 
 SECTION_STATES = {
     "READY",
@@ -77,11 +84,18 @@ class JaRs485Client(threading.Thread):
         port: str,
         access_code: str,
         on_update: Callable[[], None] | None = None,
+        prf_poll_interval: float = 0.0,
     ) -> None:
         super().__init__(daemon=True, name=f"JA-RS485 {port}")
         self._port = port
         self._access_code = access_code
         self._on_update = on_update
+        # Fast PRFSTATE polling for low-latency detector states; 0 = rely on
+        # the module's ~10 s spontaneous broadcasts only.
+        self._prf_poll_interval = max(0.0, prf_poll_interval)
+        self._pending: list[tuple[float, str]] = []
+        self._last_resync = 0.0
+        self._last_prf_poll = 0.0
         self._serial: serial.Serial | None = None
         self._write_lock = threading.Lock()
         self._state_lock = threading.Lock()
@@ -189,7 +203,7 @@ class JaRs485Client(threading.Thread):
                 delay = min(delay * 2, RECONNECT_DELAY_MAX_S)
                 continue
             delay = RECONNECT_DELAY_INITIAL_S
-            self._request_initial_state()
+            self._schedule_initial_queries()
             self._read_loop()
             self._disconnect()
         self._disconnect()
@@ -231,37 +245,59 @@ class JaRs485Client(threading.Thread):
         if was_connected:
             self._notify()
 
-    def _request_initial_state(self) -> None:
-        """Query section and PG output states after (re)connecting.
+    def _schedule_initial_queries(self) -> None:
+        """Queue the state queries sent after (re)connecting.
 
         The RS-485 pair is half-duplex: transmitting while the module is
-        still streaming a response clobbers it on the shared wires. Give the
-        module time to answer each query before sending the next one; the
-        responses accumulate in the OS buffer and are parsed once the read
-        loop starts.
+        still streaming a response clobbers it on the shared wires, so the
+        queries are spaced apart and dispatched from the read loop.
         """
-        if self._stop_event.wait(0.5):
-            return
         ser = self._serial
         if ser is not None:
             try:
                 ser.reset_input_buffer()  # discard any stale bytes from port open
             except (serial.SerialException, OSError):
+                pass
+        now = time.monotonic()
+        self._pending = [
+            (now + 0.5, "STATE"),
+            (now + 0.5 + QUERY_GAP_S, "PGSTATE"),
+            (now + 0.5 + 2 * QUERY_GAP_S, "PRFSTATE"),
+        ]
+        self._last_resync = now
+        self._last_prf_poll = now
+
+    def _process_timers(self) -> None:
+        """Dispatch due queued queries, periodic resync and PRFSTATE polling."""
+        now = time.monotonic()
+        while self._pending and self._pending[0][0] <= now:
+            _, command = self._pending.pop(0)
+            try:
+                self.send_command(command)
+            except ConnectionError:
                 return
-        try:
-            self.send_command("STATE")
-            if self._stop_event.wait(2.0):
-                return
-            self.send_command("PGSTATE")
-            if self._stop_event.wait(2.0):
-                return
-            self.send_command("PRFSTATE")
-        except ConnectionError as err:
-            _LOGGER.debug("Initial state query failed: %s", err)
+        if now - self._last_resync >= RESYNC_INTERVAL_S:
+            self._last_resync = now
+            self._pending = [
+                (now, "STATE"),
+                (now + QUERY_GAP_S, "PGSTATE"),
+                (now + 2 * QUERY_GAP_S, "PRFSTATE"),
+            ]
+        elif (
+            self._prf_poll_interval
+            and not self._pending
+            and now - self._last_prf_poll >= self._prf_poll_interval
+        ):
+            self._last_prf_poll = now
+            try:
+                self.send_command("PRFSTATE")
+            except ConnectionError:
+                pass
 
     def _read_loop(self) -> None:
         buffer = bytearray()
         while not self._stop_event.is_set():
+            self._process_timers()
             ser = self._serial
             if ser is None:
                 return

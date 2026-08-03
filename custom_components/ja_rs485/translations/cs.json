@@ -37,7 +37,8 @@
           "control_mode": "Typ ovládání sekcí",
           "control_sections": "Ovladatelné sekce (prázdné = všechny viditelné)",
           "allow_pg_control": "Povolit ovládání PG výstupů",
-          "control_pgs": "Ovladatelné PG výstupy (prázdné = všechny viditelné)"
+          "control_pgs": "Ovladatelné PG výstupy (prázdné = všechny viditelné)",
+          "prf_poll_interval": "Interval dotazování na čidla [s] (0 = vypnuto, ústředna hlásí čidla sama jen cca každých 10 s; 1–2 s výrazně zrychlí odezvu)"
         }
       }
     }

@@ -27,7 +27,10 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
   attempts (which would pollute the Jablotron event history)
 - Sections and PG outputs are **discovered automatically** from the bus (initial `STATE` / `PGSTATE`
   query + spontaneous reports); new ones appear as entities without a restart
-- **Push updates** — the JA-121T reports every change instantly; no polling
+- **Push updates** — the JA-121T reports section and PG changes instantly. Detector states
+  (PRFSTATE) are only broadcast every ~10 s by the panel; enable the optional fast polling
+  in the options (1–2 s) for low-latency detector automations. A full state resync runs
+  every 5 minutes to recover anything lost to half-duplex bus collisions
 - **Automatic reconnect** with backoff when the serial port disappears (e.g. USB re-plug);
   entities become `unavailable` while the link is down
 - Config flow validates the connection and the access code before the entry is created

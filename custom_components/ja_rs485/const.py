@@ -18,6 +18,11 @@ CONF_CONTROL_SECTIONS = "control_sections"  # [] = all visible sections
 CONF_ALLOW_PG_CONTROL = "allow_pg_control"  # bool, default True
 CONF_CONTROL_PGS = "control_pgs"            # [] = all visible PGs
 
+# Fast PRFSTATE polling interval in seconds (0 = off). The module broadcasts
+# peripheral states only every ~10 s on its own; polling shortens detector
+# latency at the cost of more bus traffic.
+CONF_PRF_POLL_INTERVAL = "prf_poll_interval"
+
 CONTROL_FULL = "full"
 CONTROL_ARM_ONLY = "arm_only"
 CONTROL_NONE = "none"

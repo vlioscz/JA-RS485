@@ -37,7 +37,8 @@
           "control_mode": "Section control type",
           "control_sections": "Controllable sections (empty = all visible)",
           "allow_pg_control": "Allow PG output control",
-          "control_pgs": "Controllable PG outputs (empty = all visible)"
+          "control_pgs": "Controllable PG outputs (empty = all visible)",
+          "prf_poll_interval": "Detector polling interval [s] (0 = off; the panel broadcasts detector states only every ~10 s on its own; 1-2 s greatly improves latency)"
         }
       }
     }
