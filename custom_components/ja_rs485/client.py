@@ -84,18 +84,13 @@ class JaRs485Client(threading.Thread):
         port: str,
         access_code: str,
         on_update: Callable[[], None] | None = None,
-        prf_poll_interval: float = 0.0,
     ) -> None:
         super().__init__(daemon=True, name=f"JA-RS485 {port}")
         self._port = port
         self._access_code = access_code
         self._on_update = on_update
-        # Fast PRFSTATE polling for low-latency detector states; 0 = rely on
-        # the module's ~10 s spontaneous broadcasts only.
-        self._prf_poll_interval = max(0.0, prf_poll_interval)
         self._pending: list[tuple[float, str]] = []
         self._last_resync = 0.0
-        self._last_prf_poll = 0.0
         self._serial: serial.Serial | None = None
         self._write_lock = threading.Lock()
         self._state_lock = threading.Lock()
@@ -265,10 +260,9 @@ class JaRs485Client(threading.Thread):
             (now + 0.5 + 2 * QUERY_GAP_S, "PRFSTATE"),
         ]
         self._last_resync = now
-        self._last_prf_poll = now
 
     def _process_timers(self) -> None:
-        """Dispatch due queued queries, periodic resync and PRFSTATE polling."""
+        """Dispatch due queued queries and the periodic resync."""
         now = time.monotonic()
         while self._pending and self._pending[0][0] <= now:
             _, command = self._pending.pop(0)
@@ -283,16 +277,6 @@ class JaRs485Client(threading.Thread):
                 (now + QUERY_GAP_S, "PGSTATE"),
                 (now + 2 * QUERY_GAP_S, "PRFSTATE"),
             ]
-        elif (
-            self._prf_poll_interval
-            and not self._pending
-            and now - self._last_prf_poll >= self._prf_poll_interval
-        ):
-            self._last_prf_poll = now
-            try:
-                self.send_command("PRFSTATE")
-            except ConnectionError:
-                pass
 
     def _read_loop(self) -> None:
         buffer = bytearray()

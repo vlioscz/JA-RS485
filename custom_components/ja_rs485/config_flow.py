@@ -15,9 +15,6 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
-    NumberSelector,
-    NumberSelectorConfig,
-    NumberSelectorMode,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -37,7 +34,6 @@ from .const import (
     CONF_PERIPHERALS,
     CONF_PG_OUTPUTS,
     CONF_PORT,
-    CONF_PRF_POLL_INTERVAL,
     CONF_SECTIONS,
     CONTROL_FULL,
     CONTROL_MODES,
@@ -266,9 +262,6 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                     CONF_CONTROL_PGS: _clean_id_list(
                         user_input.get(CONF_CONTROL_PGS, []), MAX_PG
                     ),
-                    CONF_PRF_POLL_INTERVAL: max(
-                        0, min(60, int(user_input.get(CONF_PRF_POLL_INTERVAL, 0) or 0))
-                    ),
                 }
             )
 
@@ -350,18 +343,6 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                         multiple=True,
                         custom_value=True,
                         mode=SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                vol.Optional(
-                    CONF_PRF_POLL_INTERVAL,
-                    default=int(options.get(CONF_PRF_POLL_INTERVAL, 0) or 0),
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=0,
-                        max=60,
-                        step=1,
-                        unit_of_measurement="s",
-                        mode=NumberSelectorMode.BOX,
                     )
                 ),
             }

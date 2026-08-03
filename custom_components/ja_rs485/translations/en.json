@@ -29,7 +29,7 @@
     "step": {
       "init": {
         "title": "Entity filter",
-        "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Ranges:** every field also accepts ranges — type e.g. `8-20` (or `1-6 8-20 25` at once) and confirm it as a custom value.\n\n**Peripherals (detectors):** position numbers match the Devices tab in F-Link (0 = control panel). Empty selection = detectors appear automatically on their first activation; an explicit selection creates exactly the given positions immediately.",
+        "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Ranges:** every field also accepts ranges — type e.g. `8-20` (or `1-6 8-20 25` at once) and confirm it as a custom value.\n\n**Peripherals (detectors) are informational only:** the panel broadcasts their states only about every 10 seconds, so they appear in HA with a 0-10 s delay and short events may be missed. For any control (automations, switching lights, etc.) route the detector through a PG output in F-Link — PG changes are pushed instantly. Detector position numbers match the Devices tab in F-Link (0 = control panel); empty selection = detectors appear automatically on their first activation.",
         "data": {
           "sections": "Sections (visible)",
           "pg_outputs": "PG outputs (visible)",
@@ -37,8 +37,7 @@
           "control_mode": "Section control type",
           "control_sections": "Controllable sections (empty = all visible)",
           "allow_pg_control": "Allow PG output control",
-          "control_pgs": "Controllable PG outputs (empty = all visible)",
-          "prf_poll_interval": "Detector polling interval [s] (0 = off; the panel broadcasts detector states only every ~10 s on its own; 1-2 s greatly improves latency)"
+          "control_pgs": "Controllable PG outputs (empty = all visible)"
         }
       }
     }
