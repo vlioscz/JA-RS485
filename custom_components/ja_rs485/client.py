@@ -198,9 +198,26 @@ class JaRs485Client(threading.Thread):
             self._notify()
 
     def _request_initial_state(self) -> None:
-        """Query section and PG output states after (re)connecting."""
+        """Query section and PG output states after (re)connecting.
+
+        The RS-485 pair is half-duplex: transmitting while the module is
+        still streaming a response clobbers it on the shared wires. Give the
+        module time to answer each query before sending the next one; the
+        responses accumulate in the OS buffer and are parsed once the read
+        loop starts.
+        """
+        if self._stop_event.wait(0.5):
+            return
+        ser = self._serial
+        if ser is not None:
+            try:
+                ser.reset_input_buffer()  # discard any stale bytes from port open
+            except (serial.SerialException, OSError):
+                return
         try:
             self.send_command("STATE")
+            if self._stop_event.wait(2.0):
+                return
             self.send_command("PGSTATE")
         except ConnectionError as err:
             _LOGGER.debug("Initial state query failed: %s", err)

@@ -35,10 +35,13 @@ async def async_setup_entry(
 
     @callback
     def _sync_entities() -> None:
+        # Sections reported as OFF are disabled in the panel configuration —
+        # don't create entities for them (they appear later if ever enabled).
         new = [
             JaSectionAlarmPanel(client, entry, section_id)
             for section_id in client.get_section_ids()
             if section_id not in known
+            and client.get_section_state(section_id) != "OFF"
         ]
         for entity in new:
             known.add(entity.section_id)
