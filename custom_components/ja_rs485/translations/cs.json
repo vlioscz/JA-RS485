@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "JA-RS485 (Jablotron JA-121T)",
-        "description": "Připojení ke sběrnicovému rozhraní Jablotron JA-121T (RS-485). Komunikace běží na 9600 Bd, 8N1.",
+        "description": "Připojení ke sběrnicovému rozhraní Jablotron JA-121T (RS-485). Komunikace běží na 9600 Bd, 8N1.\n\n**Zapojení:** RS-485 strana JA-121T je galvanicky oddělená a vyžaduje **externí napájení 12 V DC** na svorkách +U/GND (nenapájí se ze sběrnice Jablotronu!). Datové vodiče: **A → D+**, **B → D−**, GND propojit se zemí převodníku. Režim modulu v F-Linku: Terminál.",
         "data": {
           "port": "Sériový port",
           "access_code": "Přístupový kód"

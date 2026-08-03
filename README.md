@@ -36,9 +36,17 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
 
 - Home Assistant 2024.11 or newer
 - JA-121T enrolled in the control panel, **Terminal** mode (default; set in F-Link → Internal settings)
-- A USB↔RS-485 converter (FTDI/CH340/CP2102-based all work). Wire converter **A→A, B→B**, and
-  connect **GND** to the converter's ground. The RS-485 side of the JA-121T must be powered
-  (12 V DC on the +U/GND output terminals per the manual).
+- A USB↔RS-485 converter (FTDI/CH340/CP2102-based all work)
+
+### Wiring (the two things everyone gets wrong)
+
+1. **External 12 V supply is mandatory.** The RS-485 side of the JA-121T is galvanically
+   isolated and is **not** powered from the Jablotron bus. Feed **12 V DC** (6–28 V per the
+   manual) into the **+U/GND terminals on the RS-485 output side**. Without it the line only
+   carries noise (single garbage bytes like `\x00`).
+2. **Data line polarity:** JA-121T **A → converter D+**, **B → D−**, and connect the JA-121T
+   output-side **GND** to the converter's ground. (RS-485 A/B labeling is not standardized —
+   if you only get garbage with power present, swap A/B.)
 
 ## Installation
 
@@ -73,6 +81,7 @@ plugin (HACS).
 |---------|-------|
 | `invalid_auth` / `NO_ACCESS` in logs | Wrong code, wrong prefix, or the code lacks rights for that section/PG |
 | `no_response` during setup | A/B wires swapped, missing GND, wrong port, or JA-121T not in Terminal mode |
+| `unexpected_data` / single garbage bytes (`\x00`, `\xfc`) in the log | **Missing 12 V supply on the RS-485 side (+U/GND)** or swapped A/B polarity |
 | Entities appear but never update | *Passive mode* enabled in F-Link — disable it so the module pushes changes |
 | Everything drops to `unavailable` | USB converter disconnected; the integration reconnects automatically |
 

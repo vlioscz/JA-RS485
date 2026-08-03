@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "JA-RS485 (Jablotron JA-121T)",
-        "description": "Connect to the Jablotron JA-121T RS-485 bus interface. Communication runs at 9600 Bd, 8N1.",
+        "description": "Connect to the Jablotron JA-121T RS-485 bus interface. Communication runs at 9600 Bd, 8N1.\n\n**Wiring:** the RS-485 side of the JA-121T is galvanically isolated and requires an **external 12 V DC supply** on its +U/GND terminals (it is NOT powered from the Jablotron bus!). Data lines: **A → D+**, **B → D−**, connect GND to the converter's ground. Module mode in F-Link: Terminal.",
         "data": {
           "port": "Serial port",
           "access_code": "Access code"
