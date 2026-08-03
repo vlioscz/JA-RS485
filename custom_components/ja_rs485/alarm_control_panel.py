@@ -9,11 +9,12 @@ from homeassistant.components.alarm_control_panel import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import ALARM_FLAGS, JaRs485Client
-from .const import DOMAIN, is_section_allowed, signal_update
+from .const import DOMAIN, can_arm, can_disarm, is_section_allowed, signal_update
 from .entity import JaRs485Entity
 
 # Mapping of JA-121T section states to HA alarm states. MAINTENANCE, SERVICE
@@ -56,16 +57,23 @@ async def async_setup_entry(
 
 
 class JaSectionAlarmPanel(JaRs485Entity, AlarmControlPanelEntity):
-    _attr_supported_features = (
-        AlarmControlPanelEntityFeature.ARM_AWAY | AlarmControlPanelEntityFeature.ARM_HOME
-    )
     _attr_code_arm_required = False
 
     def __init__(self, client: JaRs485Client, entry: ConfigEntry, section_id: int) -> None:
         super().__init__(client, entry)
         self.section_id = section_id
+        self._options = entry.options
         self._attr_name = f"Jablotron Section {section_id}"
         self._attr_unique_id = f"{entry.entry_id}_section_{section_id}"
+        # Mirror the F-Link rights configured in the options: expose arm
+        # buttons only when arming is actually permitted. (The entry reloads
+        # on options change, so evaluating once here is enough.)
+        self._attr_supported_features = (
+            AlarmControlPanelEntityFeature.ARM_AWAY
+            | AlarmControlPanelEntityFeature.ARM_HOME
+            if can_arm(entry.options, section_id)
+            else AlarmControlPanelEntityFeature(0)
+        )
 
     @property
     def alarm_state(self) -> AlarmControlPanelState | None:
@@ -87,10 +95,25 @@ class JaSectionAlarmPanel(JaRs485Entity, AlarmControlPanelEntity):
         }
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
+        if not can_arm(self._options, self.section_id):
+            raise HomeAssistantError(
+                f"Arming section {self.section_id} is not allowed by the "
+                "integration control settings"
+            )
         await self._async_send_command(f"SET {self.section_id}")
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
+        if not can_arm(self._options, self.section_id):
+            raise HomeAssistantError(
+                f"Arming section {self.section_id} is not allowed by the "
+                "integration control settings"
+            )
         await self._async_send_command(f"SETP {self.section_id}")
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
+        if not can_disarm(self._options, self.section_id):
+            raise HomeAssistantError(
+                f"Disarming section {self.section_id} is not allowed by the "
+                "integration control settings"
+            )
         await self._async_send_command(f"UNSET {self.section_id}")

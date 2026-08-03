@@ -20,6 +20,11 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
 - **Entity filter** in the integration options — choose which sections, PG outputs and
   peripherals become entities (state queries are not restricted by code permissions, so
   everything the panel reports is visible by default)
+- **Control permissions** in the integration options, mirroring the rights of the access
+  code in F-Link: section control type (full / arm only / read only), which sections may be
+  controlled, and whether/which PG outputs may be controlled. Disallowed commands are
+  rejected locally with a clear error instead of hitting the panel with `NO_ACCESS`
+  attempts (which would pollute the Jablotron event history)
 - Sections and PG outputs are **discovered automatically** from the bus (initial `STATE` / `PGSTATE`
   query + spontaneous reports); new ones appear as entities without a restart
 - **Push updates** — the JA-121T reports every change instantly; no polling

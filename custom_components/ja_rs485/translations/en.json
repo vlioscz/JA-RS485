@@ -31,10 +31,23 @@
         "title": "Entity filter",
         "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Peripherals (detectors):** position numbers match the Devices tab in F-Link (0 = control panel). Empty selection = detectors appear automatically on their first activation; an explicit selection creates exactly the given positions immediately.",
         "data": {
-          "sections": "Sections",
-          "pg_outputs": "PG outputs",
-          "peripherals": "Peripherals (detectors)"
+          "sections": "Sections (visible)",
+          "pg_outputs": "PG outputs (visible)",
+          "peripherals": "Peripherals (detectors)",
+          "control_mode": "Section control type",
+          "control_sections": "Controllable sections (empty = all visible)",
+          "allow_pg_control": "Allow PG output control",
+          "control_pgs": "Controllable PG outputs (empty = all visible)"
         }
+      }
+    }
+  },
+  "selector": {
+    "control_mode": {
+      "options": {
+        "full": "Full access (arm and disarm)",
+        "arm_only": "Arm only (no disarm)",
+        "none": "No section control (read only)"
       }
     }
   }

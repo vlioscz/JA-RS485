@@ -14,6 +14,7 @@ from serial.tools import list_ports
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -26,10 +27,16 @@ from homeassistant.helpers.selector import (
 from .client import BAUDRATE
 from .const import (
     CONF_ACCESS_CODE,
+    CONF_ALLOW_PG_CONTROL,
+    CONF_CONTROL_MODE,
+    CONF_CONTROL_PGS,
+    CONF_CONTROL_SECTIONS,
     CONF_PERIPHERALS,
     CONF_PG_OUTPUTS,
     CONF_PORT,
     CONF_SECTIONS,
+    CONTROL_FULL,
+    CONTROL_MODES,
     DOMAIN,
     MAX_PERIPHERAL,
     MAX_PG,
@@ -213,6 +220,9 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         if user_input is not None:
+            control_mode = user_input.get(CONF_CONTROL_MODE, CONTROL_FULL)
+            if control_mode not in CONTROL_MODES:
+                control_mode = CONTROL_FULL
             return self.async_create_entry(
                 data={
                     CONF_SECTIONS: _clean_id_list(
@@ -226,13 +236,24 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                         MAX_PERIPHERAL,
                         min_value=0,
                     ),
+                    CONF_CONTROL_MODE: control_mode,
+                    CONF_CONTROL_SECTIONS: _clean_id_list(
+                        user_input.get(CONF_CONTROL_SECTIONS, []), MAX_SECTION
+                    ),
+                    CONF_ALLOW_PG_CONTROL: bool(
+                        user_input.get(CONF_ALLOW_PG_CONTROL, True)
+                    ),
+                    CONF_CONTROL_PGS: _clean_id_list(
+                        user_input.get(CONF_CONTROL_PGS, []), MAX_PG
+                    ),
                 }
             )
 
         client = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
-        current_sections = list(self.config_entry.options.get(CONF_SECTIONS) or [])
-        current_pgs = list(self.config_entry.options.get(CONF_PG_OUTPUTS) or [])
-        current_prf = list(self.config_entry.options.get(CONF_PERIPHERALS) or [])
+        options = self.config_entry.options
+        current_sections = list(options.get(CONF_SECTIONS) or [])
+        current_pgs = list(options.get(CONF_PG_OUTPUTS) or [])
+        current_prf = list(options.get(CONF_PERIPHERALS) or [])
 
         # Offer everything the panel currently reports plus already-selected ids.
         known_sections = [str(s) for s in client.get_section_ids()] if client else []
@@ -263,6 +284,42 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(CONF_PERIPHERALS, default=current_prf): SelectSelector(
                     SelectSelectorConfig(
                         options=prf_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(
+                    CONF_CONTROL_MODE,
+                    default=options.get(CONF_CONTROL_MODE, CONTROL_FULL),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=CONTROL_MODES,
+                        translation_key="control_mode",
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(
+                    CONF_CONTROL_SECTIONS,
+                    default=list(options.get(CONF_CONTROL_SECTIONS) or []),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=section_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(
+                    CONF_ALLOW_PG_CONTROL,
+                    default=options.get(CONF_ALLOW_PG_CONTROL, True),
+                ): BooleanSelector(),
+                vol.Optional(
+                    CONF_CONTROL_PGS,
+                    default=list(options.get(CONF_CONTROL_PGS) or []),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=pg_options,
                         multiple=True,
                         custom_value=True,
                         mode=SelectSelectorMode.DROPDOWN,

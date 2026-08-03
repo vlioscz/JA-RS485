@@ -23,6 +23,9 @@ from .const import (
     DOMAIN,
     MAX_PG,
     MAX_SECTION,
+    can_arm,
+    can_control_pg,
+    can_disarm,
     is_peripheral_allowed,
     is_pg_allowed,
     is_section_allowed,
@@ -131,34 +134,62 @@ def _async_register_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_SET_ZONE):
         return
 
-    async def _async_send(command: str) -> None:
-        clients: list[JaRs485Client] = list(hass.data.get(DOMAIN, {}).values())
-        if not clients:
+    def _get_entry_and_client() -> tuple[ConfigEntry, JaRs485Client]:
+        data: dict[str, JaRs485Client] = hass.data.get(DOMAIN, {})
+        if not data:
             raise HomeAssistantError("JA-RS485 is not set up")
-        if len(clients) > 1:
+        if len(data) > 1:
             raise HomeAssistantError(
                 "Multiple JA-RS485 connections are configured; use the alarm and "
                 "switch entities instead of the domain services"
             )
+        entry_id, client = next(iter(data.items()))
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry is None:
+            raise HomeAssistantError("JA-RS485 is not set up")
+        return entry, client
+
+    async def _async_send(client: JaRs485Client, command: str) -> None:
         try:
-            await hass.async_add_executor_job(clients[0].send_command, command)
+            await hass.async_add_executor_job(client.send_command, command)
         except ConnectionError as err:
             raise HomeAssistantError(str(err)) from err
 
+    def _require(allowed: bool, action: str) -> None:
+        if not allowed:
+            raise HomeAssistantError(
+                f"{action} is not allowed by the integration control settings"
+            )
+
     async def _set_zone(call: ServiceCall) -> None:
-        await _async_send(f"SET {call.data[ATTR_ZONE_ID]}")
+        entry, client = _get_entry_and_client()
+        section_id = call.data[ATTR_ZONE_ID]
+        _require(can_arm(entry.options, section_id), f"Arming section {section_id}")
+        await _async_send(client, f"SET {section_id}")
 
     async def _set_zone_partial(call: ServiceCall) -> None:
-        await _async_send(f"SETP {call.data[ATTR_ZONE_ID]}")
+        entry, client = _get_entry_and_client()
+        section_id = call.data[ATTR_ZONE_ID]
+        _require(can_arm(entry.options, section_id), f"Arming section {section_id}")
+        await _async_send(client, f"SETP {section_id}")
 
     async def _unset_zone(call: ServiceCall) -> None:
-        await _async_send(f"UNSET {call.data[ATTR_ZONE_ID]}")
+        entry, client = _get_entry_and_client()
+        section_id = call.data[ATTR_ZONE_ID]
+        _require(can_disarm(entry.options, section_id), f"Disarming section {section_id}")
+        await _async_send(client, f"UNSET {section_id}")
 
     async def _pgon(call: ServiceCall) -> None:
-        await _async_send(f"PGON {call.data[ATTR_PG_ID]}")
+        entry, client = _get_entry_and_client()
+        pg_id = call.data[ATTR_PG_ID]
+        _require(can_control_pg(entry.options, pg_id), f"Controlling PG {pg_id}")
+        await _async_send(client, f"PGON {pg_id}")
 
     async def _pgoff(call: ServiceCall) -> None:
-        await _async_send(f"PGOFF {call.data[ATTR_PG_ID]}")
+        entry, client = _get_entry_and_client()
+        pg_id = call.data[ATTR_PG_ID]
+        _require(can_control_pg(entry.options, pg_id), f"Controlling PG {pg_id}")
+        await _async_send(client, f"PGOFF {pg_id}")
 
     hass.services.async_register(DOMAIN, SERVICE_SET_ZONE, _set_zone, ZONE_SERVICE_SCHEMA)
     hass.services.async_register(

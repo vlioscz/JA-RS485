@@ -11,6 +11,18 @@ CONF_SECTIONS = "sections"
 CONF_PG_OUTPUTS = "pg_outputs"
 CONF_PERIPHERALS = "peripherals"
 
+# Control permissions — mirror the rights granted to the access code in
+# F-Link so the integration never even attempts a command it may not use.
+CONF_CONTROL_MODE = "control_mode"          # section control: full|arm_only|none
+CONF_CONTROL_SECTIONS = "control_sections"  # [] = all visible sections
+CONF_ALLOW_PG_CONTROL = "allow_pg_control"  # bool, default True
+CONF_CONTROL_PGS = "control_pgs"            # [] = all visible PGs
+
+CONTROL_FULL = "full"
+CONTROL_ARM_ONLY = "arm_only"
+CONTROL_NONE = "none"
+CONTROL_MODES = [CONTROL_FULL, CONTROL_ARM_ONLY, CONTROL_NONE]
+
 ATTR_ZONE_ID = "zone_id"
 ATTR_PG_ID = "pg_id"
 
@@ -53,3 +65,27 @@ def is_peripheral_allowed(options: dict, peripheral_id: int) -> bool:
 def selected_peripherals(options: dict) -> list[int]:
     """Explicitly selected peripheral positions, or [] for auto-discovery."""
     return sorted(int(v) for v in options.get(CONF_PERIPHERALS) or [])
+
+
+def _section_controllable(options: dict, section_id: int) -> bool:
+    selected = options.get(CONF_CONTROL_SECTIONS) or []
+    return not selected or str(section_id) in selected
+
+
+def can_arm(options: dict, section_id: int) -> bool:
+    mode = options.get(CONF_CONTROL_MODE, CONTROL_FULL)
+    return mode in (CONTROL_FULL, CONTROL_ARM_ONLY) and _section_controllable(
+        options, section_id
+    )
+
+
+def can_disarm(options: dict, section_id: int) -> bool:
+    mode = options.get(CONF_CONTROL_MODE, CONTROL_FULL)
+    return mode == CONTROL_FULL and _section_controllable(options, section_id)
+
+
+def can_control_pg(options: dict, pg_id: int) -> bool:
+    if not options.get(CONF_ALLOW_PG_CONTROL, True):
+        return False
+    selected = options.get(CONF_CONTROL_PGS) or []
+    return not selected or str(pg_id) in selected
