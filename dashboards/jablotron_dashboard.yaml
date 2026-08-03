@@ -1,66 +1,56 @@
-﻿title: Jablotron Control
+title: Jablotron
 views:
   - title: Jablotron
     path: jablotron
     icon: mdi:shield
     cards:
 
-      - type: custom:vertical-stack-in-card
-        title: ZĂłny
-        cards:
-          - type: custom:auto-entities
-            card:
-              type: grid
-              columns: 2
-              square: false
-            filter:
-              include:
-                - domain: sensor
-                  entity_id: sensor.jablotron_zone_*
-            sort:
-              method: name
-            card_param:
-              type: button
-              tap_action:
-                action: call-service
-                service: >
-                  [[[
-                    if (entity.state == "DISARMED") return "ja_rs485.set_zone";
-                    else return "ja_rs485.unset_zone";
-                  ]]]
-                service_data:
-                  zone_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"
-              name: "[[[ return entity.attributes.friendly_name; ]]]"
-              show_state: true
-              state_color: true
-              icon: mdi:shield-lock
+      # Sections — native alarm panels with arm/disarm buttons
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 1
+          square: false
+        card_param: cards
+        filter:
+          include:
+            - domain: alarm_control_panel
+              entity_id: alarm_control_panel.jablotron_section_*
+              options:
+                type: tile
+                features:
+                  - type: alarm-modes
+                    modes:
+                      - armed_away
+                      - armed_home
+                      - disarmed
+        sort:
+          method: name
 
-      - type: custom:vertical-stack-in-card
-        title: PG VĂ˝stupy
-        cards:
-          - type: custom:auto-entities
-            card:
-              type: grid
-              columns: 2
-              square: false
-            filter:
-              include:
-                - domain: sensor
-                  entity_id: sensor.jablotron_pg_*
-            sort:
-              method: name
-            card_param:
-              type: button
-              tap_action:
-                action: call-service
-                service: >
-                  [[[
-                    if (entity.state == "OFF") return "ja_rs485.pgon";
-                    else return "ja_rs485.pgoff";
-                  ]]]
-                service_data:
-                  pg_id: "[[[ return entity.entity_id.split('_')[-1]; ]]]"
-              name: "[[[ return entity.attributes.friendly_name; ]]]"
-              show_state: true
-              state_color: true
-              icon: mdi:light-switch
+      # PG outputs — toggle switches
+      - type: custom:auto-entities
+        card:
+          type: grid
+          columns: 2
+          square: false
+        card_param: cards
+        filter:
+          include:
+            - domain: switch
+              entity_id: switch.jablotron_pg_*
+              options:
+                type: tile
+        sort:
+          method: name
+
+      # Raw section states (diagnostic)
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Stav sekcí
+        filter:
+          include:
+            - domain: sensor
+              entity_id: sensor.jablotron_zone_*
+        sort:
+          method: name

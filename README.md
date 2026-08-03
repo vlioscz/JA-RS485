@@ -1,48 +1,81 @@
-# JA-RS485 — Home Assistant Jablotron RS-485 Integration
+# JA-RS485 — Jablotron alarm in Home Assistant over the JA-121T RS-485 interface
 
-This repository contains a **custom Home Assistant integration** for reading and controlling a Jablotron alarm system
-over the RS-485 bus interface (JA-121T) using its ASCII protocol.
+Custom Home Assistant integration for reading and controlling a **Jablotron JABLOTRON 100 / 100+** alarm system
+through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbernicove-rozhrani-rs-485)**
+(ASCII protocol, 9600 Bd, 8N1 — per Jablotron manual MNN51111), typically connected via a USB↔RS-485 converter.
 
-It includes:
-- Config Flow (UI integration setup)
-- Dynamic sensors for sections (zones) and PG outputs
-- Services for SET/UNSET/PGON/PGOFF
-- A dynamic Lovelace dashboard with auto-generated control buttons
+## Features
+
+- **Alarm control panel** entity per section — arm (SET), arm partially (SETP), disarm (UNSET),
+  with proper HA states: `disarmed`, `arming` (exit delay), `pending` (entry delay),
+  `armed_away`, `armed_home` and `triggered` (intruder / fire / panic alarm)
+- **Switch** entity per PG output (PGON / PGOFF), non-optimistic — state changes only after
+  the panel confirms them
+- **Diagnostic sensor** per section with the raw JA-121T state (`READY`, `ARMED`, `ARMED_PART`,
+  `BLOCKED`, `SERVICE`, …) and active flags as attributes
+- Sections and PG outputs are **discovered automatically** from the bus (initial `STATE` / `PGSTATE`
+  query + spontaneous reports); new ones appear as entities without a restart
+- **Push updates** — the JA-121T reports every change instantly; no polling
+- **Automatic reconnect** with backoff when the serial port disappears (e.g. USB re-plug);
+  entities become `unavailable` while the link is down
+- Config flow validates the connection and the access code before the entry is created
+
+## Security notes
+
+- All communication runs in a dedicated thread — nothing blocks the HA event loop.
+- Commands are built exclusively from validated integers (sections 1–15, PG 1–128); the access
+  code is charset-restricted at setup. Nothing user-supplied can inject extra commands into the line.
+- The access code is stored in the HA config entry and is **never written to logs**.
+- **Use a dedicated user code** for this integration with only the permissions it needs
+  (which sections it may control, which PG outputs). Every command is logged in the Jablotron
+  event history under that user.
+- Failed commands (e.g. `ERROR: 3 NO_ACCESS`) are logged and arm/disarm actions surface the
+  failure in the UI instead of pretending they succeeded.
+
+## Requirements
+
+- Home Assistant 2024.11 or newer
+- JA-121T enrolled in the control panel, **Terminal** mode (default; set in F-Link → Internal settings)
+- A USB↔RS-485 converter (FTDI/CH340/CP2102-based all work). Wire converter **A→A, B→B**, and
+  connect **GND** to the converter's ground. The RS-485 side of the JA-121T must be powered
+  (12 V DC on the +U/GND output terminals per the manual).
 
 ## Installation
 
-1. Copy the `custom_components/ja_rs485/` folder into your Home Assistant: `config/custom_components/ja_rs485/`
-
-2. Copy the dashboard file `dashboards/jablotron_dashboard.yaml`
-(optional: add it to Lovelace or import via UI editor)
-
-3. Install the required Lovelace plugins:
-- `auto-entities`
-- `vertical-stack-in-card`
-
-4. Restart Home Assistant.
-
-5. Go to **Settings → Integrations → Add Integration** and select **JA-RS485**.
-Enter your serial port and baud rate.
+1. Copy `custom_components/ja_rs485/` into `config/custom_components/ja_rs485/`.
+2. Restart Home Assistant.
+3. **Settings → Devices & services → Add integration → JA-RS485.**
+4. Pick the serial port — prefer the stable path `/dev/serial/by-id/usb-...` over `/dev/ttyUSB0`
+   (survives reboots and re-plugs) — and enter the access code (with prefix if your system uses
+   prefixes, e.g. `1*1234`).
 
 ## Services
 
-There are the following services available:
+Kept for backward compatibility and automations; the alarm/switch entities are the preferred way.
 
-| Service | Description |
-|---------|-------------|
-| `ja_rs485.set_zone` | Arm a section |
-| `ja_rs485.unset_zone` | Disarm a section |
-| `ja_rs485.pgon` | Turn PG output on |
-| `ja_rs485.pgoff` | Turn PG output off |
+| Service | Command | Description |
+|---------|---------|-------------|
+| `ja_rs485.set_zone` | `SET n` | Arm a section (1–15) |
+| `ja_rs485.set_zone_partial` | `SETP n` | Arm a section partially |
+| `ja_rs485.unset_zone` | `UNSET n` | Disarm a section |
+| `ja_rs485.pgon` | `PGON n` | Turn a PG output (1–128) on |
+| `ja_rs485.pgoff` | `PGOFF n` | Turn a PG output off |
 
-Each service takes a numeric argument (`zone_id` / `pg_id`) to select which section/output you want to control.
+## Lovelace dashboard
 
-## Lovelace Dashboard
+`dashboards/jablotron_dashboard.yaml` auto-generates tiles for all sections (with arm/disarm
+buttons) and PG outputs. It only needs the [auto-entities](https://github.com/thomasloven/lovelace-auto-entities)
+plugin (HACS).
 
-Use the included `jablotron_dashboard.yaml` to automatically create a dashboard
-with buttons for all detected sections and PG outputs.
+## Troubleshooting
+
+| Symptom | Check |
+|---------|-------|
+| `invalid_auth` / `NO_ACCESS` in logs | Wrong code, wrong prefix, or the code lacks rights for that section/PG |
+| `no_response` during setup | A/B wires swapped, missing GND, wrong port, or JA-121T not in Terminal mode |
+| Entities appear but never update | *Passive mode* enabled in F-Link — disable it so the module pushes changes |
+| Everything drops to `unavailable` | USB converter disconnected; the integration reconnects automatically |
 
 ## License
 
-This integration is licensed under the MIT License.
+MIT

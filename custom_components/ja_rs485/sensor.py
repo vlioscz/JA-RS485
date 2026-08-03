@@ -1,125 +1,67 @@
-import logging
-import serial
-import threading
+"""Diagnostic sensors — raw JA-121T state of each section."""
+
+from __future__ import annotations
+
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import EntityCategory
-from .const import DOMAIN, CONF_PORT, CONF_BAUDRATE
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-_LOGGER = logging.getLogger(__name__)
+from .client import JaRs485Client
+from .const import DOMAIN, signal_update
+from .entity import JaRs485Entity
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    config = entry.data
-    port = config.get(CONF_PORT)
-    baudrate = config.get(CONF_BAUDRATE, 9600)
-
-    reader = JablotronSerialReader(port, baudrate)
-    reader.start()
-    hass.data.setdefault(DOMAIN, {})["reader"] = reader
-
-    sensors = []
-
-    import asyncio
-    async def discover():
-        await asyncio.sleep(2)
-        for zone_id in reader.get_all_zone_ids():
-            sensors.append(JablotronZoneSensor(reader, zone_id))
-        for pg_id in reader.get_all_pg_ids():
-            sensors.append(JablotronPGSensor(reader, pg_id))
-        async_add_entities(sensors, update_before_add=True)
-
-    hass.loop.create_task(discover())
+ICONS = {
+    "ARMED": "mdi:shield-lock",
+    "ARMED_PART": "mdi:shield-half-full",
+    "READY": "mdi:shield-check-outline",
+    "BLOCKED": "mdi:shield-alert",
+}
 
 
-class JablotronSerialReader(threading.Thread):
-    def __init__(self, port, baudrate):
-        super().__init__(daemon=True)
-        self._port = port
-        self._baudrate = baudrate
-        self._zones = {}
-        self._pg = {}
-        self._lock = threading.Lock()
-        self._running = True
-        self._serial = None
-        try:
-            self._serial = serial.Serial(port, baudrate, timeout=1)
-        except Exception as e:
-            _LOGGER.error(f"Cannot open serial port {port}: {e}")
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
+    client: JaRs485Client = hass.data[DOMAIN][entry.entry_id]
+    known: set[int] = set()
 
-    def run(self):
-        if not self._serial:
-            return
-        _LOGGER.info("Jablotron RS485 reader started")
-        while self._running:
-            try:
-                line = self._serial.readline().decode("ascii", errors="ignore").strip()
-                self._parse_line(line)
-            except Exception as e:
-                _LOGGER.error(f"Error reading serial: {e}")
+    @callback
+    def _sync_entities() -> None:
+        new = [
+            JaZoneSensor(client, entry, section_id)
+            for section_id in client.get_section_ids()
+            if section_id not in known
+        ]
+        for entity in new:
+            known.add(entity.section_id)
+        if new:
+            async_add_entities(new)
 
-    def _parse_line(self, line):
-        parts = line.split()
-        with self._lock:
-            if parts and parts[0] == "STATE" and len(parts) >= 3:
-                self._zones[int(parts[1])] = parts[2]
-            elif parts and parts[0] == "PGSTATE" and len(parts) >= 3:
-                self._pg[int(parts[1])] = parts[2]
-
-    def get_zone_state(self, zone_id):
-        with self._lock:
-            return self._zones.get(zone_id)
-
-    def get_pg_state(self, pg_id):
-        with self._lock:
-            return self._pg.get(pg_id)
-
-    def get_all_zone_ids(self):
-        with self._lock:
-            return list(self._zones.keys())
-
-    def get_all_pg_ids(self):
-        with self._lock:
-            return list(self._pg.keys())
-
-    def send_command(self, command):
-        try:
-            self._serial.write(f"{command}\r\n".encode("ascii"))
-            _LOGGER.info(f"Sent command: {command}")
-        except Exception as e:
-            _LOGGER.error(f"Error sending command: {e}")
-
-    def stop(self):
-        self._running = False
-        if self._serial:
-            self._serial.close()
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, signal_update(entry.entry_id), _sync_entities)
+    )
+    _sync_entities()
 
 
-class JablotronZoneSensor(SensorEntity):
+class JaZoneSensor(JaRs485Entity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, reader, zone_id):
-        self._reader = reader
-        self._zone_id = zone_id
-        self._state = None
-        self._attr_name = f"Jablotron Zone {zone_id}"
+
+    def __init__(self, client: JaRs485Client, entry: ConfigEntry, section_id: int) -> None:
+        super().__init__(client, entry)
+        self.section_id = section_id
+        self._attr_name = f"Jablotron Zone {section_id}"
+        self._attr_unique_id = f"{entry.entry_id}_zone_{section_id}"
 
     @property
-    def native_value(self):
-        return self._state
-
-    async def async_update(self):
-        self._state = self._reader.get_zone_state(self._zone_id)
-
-
-class JablotronPGSensor(SensorEntity):
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    def __init__(self, reader, pg_id):
-        self._reader = reader
-        self._pg_id = pg_id
-        self._state = None
-        self._attr_name = f"Jablotron PG {pg_id}"
+    def native_value(self) -> str | None:
+        return self._client.get_section_state(self.section_id)
 
     @property
-    def native_value(self):
-        return self._state
+    def icon(self) -> str:
+        return ICONS.get(self.native_value or "", "mdi:shield-outline")
 
-    async def async_update(self):
-        self._state = self._reader.get_pg_state(self._pg_id)
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {"flags": sorted(self._client.get_section_flags(self.section_id))}

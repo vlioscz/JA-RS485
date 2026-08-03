@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "JA-RS485 (Jablotron JA-121T)",
+        "description": "Připojení ke sběrnicovému rozhraní Jablotron JA-121T (RS-485). Komunikace běží na 9600 Bd, 8N1.",
+        "data": {
+          "port": "Sériový port",
+          "access_code": "Přístupový kód"
+        },
+        "data_description": {
+          "port": "Sériové zařízení převodníku RS-485, např. /dev/serial/by-id/usb-... (doporučeno) nebo /dev/ttyUSB0.",
+          "access_code": "Uživatelský kód, s prefixem pokud jej systém používá (např. 1*1234). Doporučujeme vyhradit kód pouze s potřebnými oprávněními."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Sériový port nelze otevřít nebo selhala komunikace.",
+      "invalid_auth": "Ústředna odmítla přístupový kód (NO_ACCESS).",
+      "no_response": "JA-121T neodpovídá — zkontrolujte zapojení (vodiče A/B) a zvolený port.",
+      "invalid_code_format": "Neplatný formát kódu — číslice s volitelným prefixem, např. 1*1234."
+    },
+    "abort": {
+      "already_configured": "Tento sériový port je již nakonfigurován."
+    }
+  }
+}

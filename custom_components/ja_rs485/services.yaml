@@ -1,0 +1,69 @@
+set_zone:
+  name: Arm section
+  description: Fully arm a Jablotron section (SET).
+  fields:
+    zone_id:
+      name: Section
+      description: Section number (1-15).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 15
+          mode: box
+
+set_zone_partial:
+  name: Arm section partially
+  description: Partially arm a Jablotron section (SETP).
+  fields:
+    zone_id:
+      name: Section
+      description: Section number (1-15).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 15
+          mode: box
+
+unset_zone:
+  name: Disarm section
+  description: Disarm a Jablotron section (UNSET).
+  fields:
+    zone_id:
+      name: Section
+      description: Section number (1-15).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 15
+          mode: box
+
+pgon:
+  name: Turn PG output on
+  description: Activate a PG output (PGON).
+  fields:
+    pg_id:
+      name: PG output
+      description: PG output number (1-128).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 128
+          mode: box
+
+pgoff:
+  name: Turn PG output off
+  description: Deactivate a PG output (PGOFF).
+  fields:
+    pg_id:
+      name: PG output
+      description: PG output number (1-128).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 128
+          mode: box

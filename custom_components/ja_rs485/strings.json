@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "JA-RS485 (Jablotron JA-121T)",
+        "description": "Connect to the Jablotron JA-121T RS-485 bus interface. Communication runs at 9600 Bd, 8N1.",
+        "data": {
+          "port": "Serial port",
+          "access_code": "Access code"
+        },
+        "data_description": {
+          "port": "Serial device of the RS-485 converter, e.g. /dev/serial/by-id/usb-... (recommended) or /dev/ttyUSB0.",
+          "access_code": "User code, with prefix if your system uses prefixes (e.g. 1*1234). Use a dedicated code with only the permissions it needs."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot open the serial port or communication failed.",
+      "invalid_auth": "The control panel rejected the access code (NO_ACCESS).",
+      "no_response": "No response from the JA-121T — check the wiring (A/B lines) and the selected port.",
+      "invalid_code_format": "Invalid code format — digits with an optional prefix, e.g. 1*1234."
+    },
+    "abort": {
+      "already_configured": "This serial port is already configured."
+    }
+  }
+}
