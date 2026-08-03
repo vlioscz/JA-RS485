@@ -2,6 +2,11 @@
 
 # JA-RS485 — Jablotron alarm in Home Assistant over the JA-121T RS-485 interface
 
+[![Validate](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml/badge.svg)](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml)
+[![GitHub release](https://img.shields.io/github/v/release/vlioscz/JA-RS485)](https://github.com/vlioscz/JA-RS485/releases)
+[![HACS](https://img.shields.io/badge/HACS-custom-orange.svg)](https://hacs.xyz)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Custom Home Assistant integration for reading and controlling a **Jablotron JABLOTRON 100 / 100+** alarm system
 through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbernicove-rozhrani-rs-485)**
 (ASCII protocol, 9600 Bd, 8N1 — per Jablotron manual MNN51111), typically connected via a USB↔RS-485 converter.
@@ -77,10 +82,21 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
 
 ## Installation
 
+### HACS (recommended)
+
+1. **HACS → ⋮ → Custom repositories**, add `https://github.com/vlioscz/JA-RS485`
+   as type **Integration** (skip this step once the repository is in the HACS default store).
+2. Search for **JA-RS485** in HACS, download it and restart Home Assistant.
+
+### Manual
+
 1. Copy `custom_components/ja_rs485/` into `config/custom_components/ja_rs485/`.
 2. Restart Home Assistant.
-3. **Settings → Devices & services → Add integration → JA-RS485.**
-4. Pick the serial port — prefer the stable path `/dev/serial/by-id/usb-...` over `/dev/ttyUSB0`
+
+### Setup
+
+1. **Settings → Devices & services → Add integration → JA-RS485.**
+2. Pick the serial port — prefer the stable path `/dev/serial/by-id/usb-...` over `/dev/ttyUSB0`
    (survives reboots and re-plugs) — and enter the access code (with prefix if your system uses
    prefixes, e.g. `1*1234`).
 
