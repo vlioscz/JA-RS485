@@ -1,3 +1,5 @@
+<p align="center"><img src="brands/logo@2x.png" alt="JA-RS485" width="461"></p>
+
 # JA-RS485 — Jablotron alarm in Home Assistant over the JA-121T RS-485 interface
 
 Custom Home Assistant integration for reading and controlling a **Jablotron JABLOTRON 100 / 100+** alarm system
