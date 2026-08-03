@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 import voluptuous as vol
 
@@ -10,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .client import JaRs485Client
@@ -21,6 +23,8 @@ from .const import (
     DOMAIN,
     MAX_PG,
     MAX_SECTION,
+    is_pg_allowed,
+    is_section_allowed,
     SERVICE_PGOFF,
     SERVICE_PGON,
     SERVICE_SET_ZONE,
@@ -51,9 +55,29 @@ ALL_SERVICES = (
 )
 
 
+@callback
+def _async_prune_registry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove registry entries for sections/PGs excluded via options."""
+    ent_reg = er.async_get(hass)
+    for reg_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        unique_id = reg_entry.unique_id or ""
+        if match := re.search(r"_(?:section|zone)_(\d+)$", unique_id):
+            if not is_section_allowed(entry.options, int(match.group(1))):
+                ent_reg.async_remove(reg_entry.entity_id)
+        elif match := re.search(r"_pg_(\d+)$", unique_id):
+            if not is_pg_allowed(entry.options, int(match.group(1))):
+                ent_reg.async_remove(reg_entry.entity_id)
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port: str = entry.data[CONF_PORT]
     access_code: str = entry.data[CONF_ACCESS_CODE]
+
+    _async_prune_registry(hass, entry)
 
     @callback
     def _dispatch() -> None:
@@ -79,6 +103,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_shutdown)
     )
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     return True
 
 

@@ -12,6 +12,7 @@ import voluptuous as vol
 from serial.tools import list_ports
 
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     SelectOptionDict,
     SelectSelector,
@@ -23,7 +24,15 @@ from homeassistant.helpers.selector import (
 )
 
 from .client import BAUDRATE
-from .const import CONF_ACCESS_CODE, CONF_PORT, DOMAIN
+from .const import (
+    CONF_ACCESS_CODE,
+    CONF_PG_OUTPUTS,
+    CONF_PORT,
+    CONF_SECTIONS,
+    DOMAIN,
+    MAX_PG,
+    MAX_SECTION,
+)
 
 # JA-121T code format: "1234" or with a user prefix "1*1234". Restricting the
 # charset here also guarantees the code can never smuggle extra commands onto
@@ -121,10 +130,25 @@ def _validate_connection(port: str, access_code: str) -> None:
         ser.close()
 
 
+def _clean_id_list(values: list[str], max_value: int) -> list[str]:
+    """Keep only valid numeric ids within range (guards custom_value input)."""
+    return sorted(
+        {v.strip() for v in values if v.strip().isdigit() and 1 <= int(v) <= max_value},
+        key=int,
+    )
+
+
 class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow pro JA-RS485 (Jablotron JA-121T)."""
 
     VERSION = 2
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        return JaRs485OptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -174,3 +198,54 @@ class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+
+
+class JaRs485OptionsFlow(config_entries.OptionsFlow):
+    """Options: choose which sections and PG outputs become entities."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(
+                data={
+                    CONF_SECTIONS: _clean_id_list(
+                        user_input.get(CONF_SECTIONS, []), MAX_SECTION
+                    ),
+                    CONF_PG_OUTPUTS: _clean_id_list(
+                        user_input.get(CONF_PG_OUTPUTS, []), MAX_PG
+                    ),
+                }
+            )
+
+        client = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
+        current_sections = list(self.config_entry.options.get(CONF_SECTIONS) or [])
+        current_pgs = list(self.config_entry.options.get(CONF_PG_OUTPUTS) or [])
+
+        # Offer everything the panel currently reports plus already-selected ids.
+        known_sections = [str(s) for s in client.get_section_ids()] if client else []
+        known_pgs = [str(p) for p in client.get_pg_ids()] if client else []
+        section_options = sorted(set(known_sections) | set(current_sections), key=int)
+        pg_options = sorted(set(known_pgs) | set(current_pgs), key=int)
+
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_SECTIONS, default=current_sections): SelectSelector(
+                    SelectSelectorConfig(
+                        options=section_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(CONF_PG_OUTPUTS, default=current_pgs): SelectSelector(
+                    SelectSelectorConfig(
+                        options=pg_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)

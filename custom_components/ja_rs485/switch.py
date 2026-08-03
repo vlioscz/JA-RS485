@@ -11,7 +11,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import JaRs485Client
-from .const import DOMAIN, signal_update
+from .const import DOMAIN, is_pg_allowed, signal_update
 from .entity import JaRs485Entity
 
 
@@ -26,7 +26,7 @@ async def async_setup_entry(
         new = [
             JaPgSwitch(client, entry, pg_id)
             for pg_id in client.get_pg_ids()
-            if pg_id not in known
+            if pg_id not in known and is_pg_allowed(entry.options, pg_id)
         ]
         for entity in new:
             known.add(entity.pg_id)

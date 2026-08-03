@@ -24,5 +24,17 @@
     "abort": {
       "already_configured": "This serial port is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Entity filter",
+        "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.",
+        "data": {
+          "sections": "Sections",
+          "pg_outputs": "PG outputs"
+        }
+      }
+    }
   }
 }

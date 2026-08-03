@@ -24,5 +24,17 @@
     "abort": {
       "already_configured": "Tento sériový port je již nakonfigurován."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Filtr entit",
+        "description": "Vyber, které sekce a PG výstupy se mají v Home Assistantu vytvářet jako entity (např. jen ty, ke kterým má přístupový kód práva). Prázdný výběr = zobrazit vše, co ústředna hlásí. Odebrané entity budou z HA odstraněny.",
+        "data": {
+          "sections": "Sekce",
+          "pg_outputs": "PG výstupy"
+        }
+      }
+    }
   }
 }

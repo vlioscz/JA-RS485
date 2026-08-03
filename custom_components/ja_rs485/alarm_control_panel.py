@@ -13,7 +13,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import ALARM_FLAGS, JaRs485Client
-from .const import DOMAIN, signal_update
+from .const import DOMAIN, is_section_allowed, signal_update
 from .entity import JaRs485Entity
 
 # Mapping of JA-121T section states to HA alarm states. MAINTENANCE, SERVICE
@@ -42,6 +42,7 @@ async def async_setup_entry(
             for section_id in client.get_section_ids()
             if section_id not in known
             and client.get_section_state(section_id) != "OFF"
+            and is_section_allowed(entry.options, section_id)
         ]
         for entity in new:
             known.add(entity.section_id)
