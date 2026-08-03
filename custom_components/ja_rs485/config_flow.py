@@ -140,15 +140,31 @@ def _validate_connection(port: str, access_code: str) -> None:
 
 
 def _clean_id_list(values: list[str], max_value: int, min_value: int = 1) -> list[str]:
-    """Keep only valid numeric ids within range (guards custom_value input)."""
-    return sorted(
-        {
-            v.strip()
-            for v in values
-            if v.strip().isdigit() and min_value <= int(v) <= max_value
-        },
-        key=int,
-    )
+    """Normalize user tokens into "N" / "N-M" entries within the valid range.
+
+    Accepts single numbers ("5"), ranges ("8-20") and whole pasted lists
+    ("1-6 8-20, 25") in any custom_value chip; invalid parts are dropped.
+    """
+    tokens: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        normalized = re.sub(r"\s*-\s*", "-", str(raw).strip())
+        for part in re.split(r"[\s,;]+", normalized):
+            match = re.fullmatch(r"(\d+)(?:-(\d+))?", part) if part else None
+            if not match:
+                continue
+            lo = int(match.group(1))
+            hi = int(match.group(2)) if match.group(2) else lo
+            if lo > hi:
+                lo, hi = hi, lo
+            lo, hi = max(lo, min_value), min(hi, max_value)
+            if lo > hi:
+                continue
+            token = str(lo) if lo == hi else f"{lo}-{hi}"
+            if token not in seen:
+                seen.add(token)
+                tokens.append(token)
+    return sorted(tokens, key=lambda t: int(t.split("-")[0]))
 
 
 class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -255,13 +271,17 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
         current_pgs = list(options.get(CONF_PG_OUTPUTS) or [])
         current_prf = list(options.get(CONF_PERIPHERALS) or [])
 
-        # Offer everything the panel currently reports plus already-selected ids.
+        # Offer everything the panel currently reports plus already-selected
+        # tokens (which may be ranges like "8-20").
+        def _by_start(token: str) -> int:
+            return int(str(token).split("-")[0])
+
         known_sections = [str(s) for s in client.get_section_ids()] if client else []
         known_pgs = [str(p) for p in client.get_pg_ids()] if client else []
         known_prf = [str(p) for p in client.get_peripheral_ids()] if client else []
-        section_options = sorted(set(known_sections) | set(current_sections), key=int)
-        pg_options = sorted(set(known_pgs) | set(current_pgs), key=int)
-        prf_options = sorted(set(known_prf) | set(current_prf), key=int)
+        section_options = sorted(set(known_sections) | set(current_sections), key=_by_start)
+        pg_options = sorted(set(known_pgs) | set(current_pgs), key=_by_start)
+        prf_options = sorted(set(known_prf) | set(current_prf), key=_by_start)
 
         schema = vol.Schema(
             {

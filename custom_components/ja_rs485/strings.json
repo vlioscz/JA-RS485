@@ -29,7 +29,7 @@
     "step": {
       "init": {
         "title": "Entity filter",
-        "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Peripherals (detectors):** position numbers match the Devices tab in F-Link (0 = control panel). Empty selection = detectors appear automatically on their first activation; an explicit selection creates exactly the given positions immediately.",
+        "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Ranges:** every field also accepts ranges — type e.g. `8-20` (or `1-6 8-20 25` at once) and confirm it as a custom value.\n\n**Peripherals (detectors):** position numbers match the Devices tab in F-Link (0 = control panel). Empty selection = detectors appear automatically on their first activation; an explicit selection creates exactly the given positions immediately.",
         "data": {
           "sections": "Sections (visible)",
           "pg_outputs": "PG outputs (visible)",

@@ -47,29 +47,46 @@ def signal_update(entry_id: str) -> str:
     return f"{DOMAIN}_update_{entry_id}"
 
 
+def expand_tokens(values: list | None) -> set[int]:
+    """Expand a list of "5" / "8-20" tokens into a set of integers."""
+    result: set[int] = set()
+    for raw in values or []:
+        token = str(raw).strip()
+        if token.isdigit():
+            result.add(int(token))
+        elif "-" in token:
+            low, _, high = token.partition("-")
+            if low.strip().isdigit() and high.strip().isdigit():
+                lo, hi = int(low), int(high)
+                if lo > hi:
+                    lo, hi = hi, lo
+                result.update(range(lo, hi + 1))
+    return result
+
+
 def is_section_allowed(options: dict, section_id: int) -> bool:
     selected = options.get(CONF_SECTIONS) or []
-    return not selected or str(section_id) in selected
+    return not selected or section_id in expand_tokens(selected)
 
 
 def is_pg_allowed(options: dict, pg_id: int) -> bool:
     selected = options.get(CONF_PG_OUTPUTS) or []
-    return not selected or str(pg_id) in selected
+    return not selected or pg_id in expand_tokens(selected)
 
 
 def is_peripheral_allowed(options: dict, peripheral_id: int) -> bool:
     selected = options.get(CONF_PERIPHERALS) or []
-    return not selected or str(peripheral_id) in selected
+    return not selected or peripheral_id in expand_tokens(selected)
 
 
 def selected_peripherals(options: dict) -> list[int]:
     """Explicitly selected peripheral positions, or [] for auto-discovery."""
-    return sorted(int(v) for v in options.get(CONF_PERIPHERALS) or [])
+    return sorted(expand_tokens(options.get(CONF_PERIPHERALS)))
 
 
 def _section_controllable(options: dict, section_id: int) -> bool:
     selected = options.get(CONF_CONTROL_SECTIONS) or []
-    return not selected or str(section_id) in selected
+    return not selected or section_id in expand_tokens(selected)
 
 
 def can_arm(options: dict, section_id: int) -> bool:
@@ -88,4 +105,4 @@ def can_control_pg(options: dict, pg_id: int) -> bool:
     if not options.get(CONF_ALLOW_PG_CONTROL, True):
         return False
     selected = options.get(CONF_CONTROL_PGS) or []
-    return not selected or str(pg_id) in selected
+    return not selected or pg_id in expand_tokens(selected)
