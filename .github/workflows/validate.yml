@@ -24,6 +24,3 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # home-assistant/brands no longer accepts custom-integration icons;
-          # the brand images ship inside custom_components/ja_rs485/brand/.
-          ignore: brands
