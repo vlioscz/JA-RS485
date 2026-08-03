@@ -9,10 +9,14 @@ position 0 is the control panel).
 
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import JaRs485Client
@@ -24,6 +28,8 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     client: JaRs485Client = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([JaBusConnectionSensor(client, entry)])
+
     explicit = selected_peripherals(entry.options)
     known: set[int] = set()
 
@@ -45,6 +51,27 @@ async def async_setup_entry(
         async_dispatcher_connect(hass, signal_update(entry.entry_id), _sync_entities)
     )
     _sync_entities()
+
+
+class JaBusConnectionSensor(JaRs485Entity, BinarySensorEntity):
+    """Health of the serial link to the JA-121T."""
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, client: JaRs485Client, entry: ConfigEntry) -> None:
+        super().__init__(client, entry)
+        self._attr_name = "Jablotron Bus Connection"
+        self._attr_unique_id = f"{entry.entry_id}_bus_connection"
+
+    @property
+    def available(self) -> bool:
+        # Must stay available to be able to report the link as down.
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return self._client.connected
 
 
 class JaPeripheralBinarySensor(JaRs485Entity, BinarySensorEntity):

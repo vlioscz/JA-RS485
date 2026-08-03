@@ -34,7 +34,16 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
   to recover anything lost to half-duplex bus collisions
 - **Automatic reconnect** with backoff when the serial port disappears (e.g. USB re-plug);
   entities become `unavailable` while the link is down
-- Config flow validates the connection and the access code before the entry is created
+- Config flow validates the connection and the access code before the entry is created;
+  **Reconfigure** lets you change the port or access code later without losing entities
+- **`ja_rs485_alarm` event** fired on the HA event bus whenever an intruder / fire / panic
+  alarm flag of a section changes — ideal for push-notification automations
+- **Bus connection binary sensor** (`binary_sensor.jablotron_bus_connection`) for watching
+  the health of the serial link
+- **Diagnostics** download (access code redacted) including the last 50 received protocol
+  lines — attach it when reporting issues
+- Section entities expose a `state_changed_at` attribute (UTC) with the time of the last
+  reported state change
 
 ## Security notes
 
@@ -90,6 +99,33 @@ Kept for backward compatibility and automations; the alarm/switch entities are t
 `dashboards/jablotron_dashboard.yaml` auto-generates tiles for all sections (with arm/disarm
 buttons) and PG outputs. It only needs the [auto-entities](https://github.com/thomasloven/lovelace-auto-entities)
 plugin (HACS).
+
+## Alarm event automations
+
+Every change of an alarm flag fires a `ja_rs485_alarm` event with
+`{"type": "intruder"|"fire"|"panic", "flag": "...", "section": N, "active": true|false}`:
+
+```yaml
+trigger:
+  - platform: event
+    event_type: ja_rs485_alarm
+    event_data:
+      active: true
+action:
+  - service: notify.mobile_app_phone
+    data:
+      title: "ALARM!"
+      message: "{{ trigger.event.data.type }} alarm in section {{ trigger.event.data.section }}"
+```
+
+## Tested hardware
+
+Verified working on a JABLOTRON 100+ system with a JA-121T and an FT232R-based USB↔RS-485
+converter (`/dev/ttyUSB0`), wired A→D+, B→D−, GND↔GND, with an external 12 V DC supply on
+the module's +U/GND output terminals. Section arm/disarm, PG control and detector reading
+all confirmed on real hardware. Practical findings: PG output changes propagate instantly,
+detector (PRFSTATE) updates arrive only every ~10 s — route detectors through PG outputs
+for automations.
 
 ## Troubleshooting
 

@@ -21,6 +21,7 @@ from .const import (
     CONF_ACCESS_CODE,
     CONF_PORT,
     DOMAIN,
+    EVENT_ALARM,
     MAX_PG,
     MAX_SECTION,
     can_arm,
@@ -102,7 +103,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except RuntimeError:
             pass  # loop already closed during shutdown
 
-    client = JaRs485Client(port, access_code, on_update=_on_update)
+    def _on_event(data: dict) -> None:
+        # Alarm flag transition (intruder/fire/panic) — fire an HA event.
+        try:
+            hass.loop.call_soon_threadsafe(hass.bus.async_fire, EVENT_ALARM, data)
+        except RuntimeError:
+            pass
+
+    client = JaRs485Client(port, access_code, on_update=_on_update, on_event=_on_event)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
     client.start()
 

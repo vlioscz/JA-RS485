@@ -12,6 +12,18 @@
           "port": "Serial device of the RS-485 converter, e.g. /dev/serial/by-id/usb-... (recommended) or /dev/ttyUSB0.",
           "access_code": "User code, with prefix if your system uses prefixes (e.g. 1*1234). Use a dedicated code with only the permissions it needs."
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure JA-RS485 connection",
+        "description": "Change the serial port or access code. The connection is validated before saving; entities and their custom names are preserved.",
+        "data": {
+          "port": "Serial port",
+          "access_code": "Access code"
+        },
+        "data_description": {
+          "port": "Serial device of the RS-485 converter, e.g. /dev/serial/by-id/usb-... (recommended) or /dev/ttyUSB0.",
+          "access_code": "User code, with prefix if your system uses prefixes (e.g. 1*1234)."
+        }
       }
     },
     "error": {
@@ -22,7 +34,8 @@
       "invalid_code_format": "Invalid code format — digits with an optional prefix, e.g. 1*1234."
     },
     "abort": {
-      "already_configured": "This serial port is already configured."
+      "already_configured": "This serial port is already configured.",
+      "reconfigure_successful": "Connection settings updated successfully."
     }
   },
   "options": {

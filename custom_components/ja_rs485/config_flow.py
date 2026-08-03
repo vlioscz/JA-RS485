@@ -228,6 +228,75 @@ class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Change the serial port and/or access code of an existing entry."""
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if entry is None:
+            return self.async_abort(reason="unknown")
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            port = user_input[CONF_PORT].strip()
+            access_code = user_input[CONF_ACCESS_CODE].strip()
+
+            if not CODE_RE.match(access_code):
+                errors[CONF_ACCESS_CODE] = "invalid_code_format"
+            else:
+                for other in self._async_current_entries():
+                    if other.entry_id != entry.entry_id and (
+                        other.unique_id == port or other.data.get(CONF_PORT) == port
+                    ):
+                        return self.async_abort(reason="already_configured")
+                # Release the port held by the running client so the
+                # validation query does not compete for the serial line.
+                await self.hass.config_entries.async_unload(entry.entry_id)
+                try:
+                    await self.hass.async_add_executor_job(
+                        _validate_connection, port, access_code
+                    )
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors["base"] = "invalid_auth"
+                except NoResponse:
+                    errors["base"] = "no_response"
+                except UnexpectedData:
+                    errors["base"] = "unexpected_data"
+                else:
+                    self.hass.config_entries.async_update_entry(
+                        entry,
+                        data={CONF_PORT: port, CONF_ACCESS_CODE: access_code},
+                        title=f"JA-121T ({port})",
+                        unique_id=port,
+                    )
+                self.hass.config_entries.async_schedule_reload(entry.entry_id)
+                if not errors:
+                    return self.async_abort(reason="reconfigure_successful")
+
+        ports = await self.hass.async_add_executor_job(_list_serial_ports)
+        current_port = entry.data.get(CONF_PORT, "")
+        if current_port and all(option["value"] != current_port for option in ports):
+            ports.insert(0, SelectOptionDict(value=current_port, label=current_port))
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_PORT, default=current_port): SelectSelector(
+                    SelectSelectorConfig(
+                        options=ports,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Required(CONF_ACCESS_CODE): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                ),
+            }
+        )
+        return self.async_show_form(
+            step_id="reconfigure", data_schema=schema, errors=errors
+        )
+
 
 class JaRs485OptionsFlow(config_entries.OptionsFlow):
     """Options: choose which sections and PG outputs become entities."""

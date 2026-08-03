@@ -41,6 +41,11 @@ MAX_PERIPHERAL = 229
 MANUFACTURER = "Jablotron"
 MODEL = "JA-121T"
 
+# Fired on the HA event bus when an alarm flag of a section changes.
+# Data: {"type": "intruder"|"fire"|"panic", "flag": str, "section": int,
+#        "active": bool}
+EVENT_ALARM = f"{DOMAIN}_alarm"
+
 
 def signal_update(entry_id: str) -> str:
     """Dispatcher signal fired whenever the client state changes."""

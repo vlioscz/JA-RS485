@@ -68,4 +68,7 @@ class JaZoneSensor(JaRs485Entity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {"flags": sorted(self._client.get_section_flags(self.section_id))}
+        return {
+            "flags": sorted(self._client.get_section_flags(self.section_id)),
+            "state_changed_at": self._client.get_section_changed_at(self.section_id),
+        }

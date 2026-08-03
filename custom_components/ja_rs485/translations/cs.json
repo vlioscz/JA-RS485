@@ -12,6 +12,18 @@
           "port": "Sériové zařízení převodníku RS-485, např. /dev/serial/by-id/usb-... (doporučeno) nebo /dev/ttyUSB0.",
           "access_code": "Uživatelský kód, s prefixem pokud jej systém používá (např. 1*1234). Doporučujeme vyhradit kód pouze s potřebnými oprávněními."
         }
+      },
+      "reconfigure": {
+        "title": "Změna připojení JA-RS485",
+        "description": "Změna sériového portu nebo přístupového kódu. Spojení se před uložením ověří; entity a jejich přejmenování zůstanou zachovány.",
+        "data": {
+          "port": "Sériový port",
+          "access_code": "Přístupový kód"
+        },
+        "data_description": {
+          "port": "Sériové zařízení převodníku RS-485, např. /dev/serial/by-id/usb-... (doporučeno) nebo /dev/ttyUSB0.",
+          "access_code": "Uživatelský kód, s prefixem pokud jej systém používá (např. 1*1234)."
+        }
       }
     },
     "error": {
@@ -22,7 +34,8 @@
       "invalid_code_format": "Neplatný formát kódu — číslice s volitelným prefixem, např. 1*1234."
     },
     "abort": {
-      "already_configured": "Tento sériový port je již nakonfigurován."
+      "already_configured": "Tento sériový port je již nakonfigurován.",
+      "reconfigure_successful": "Nastavení připojení bylo úspěšně změněno."
     }
   },
   "options": {

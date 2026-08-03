@@ -92,6 +92,7 @@ class JaSectionAlarmPanel(JaRs485Entity, AlarmControlPanelEntity):
         return {
             "raw_state": self._client.get_section_state(self.section_id),
             "flags": sorted(self._client.get_section_flags(self.section_id)),
+            "state_changed_at": self._client.get_section_changed_at(self.section_id),
         }
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:

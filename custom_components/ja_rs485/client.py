@@ -14,7 +14,9 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections import deque
 from collections.abc import Callable
+from datetime import datetime, timezone
 
 import serial
 
@@ -44,8 +46,19 @@ SECTION_STATES = {
 }
 
 ALARM_FLAGS = {"INTRUDER_ALARM", "FIRE_ALARM", "PANIC_ALARM"}
+ALARM_TYPES = {
+    "INTRUDER_ALARM": "intruder",
+    "FIRE_ALARM": "fire",
+    "PANIC_ALARM": "panic",
+}
 DELAY_FLAGS = {"ENTRY", "EXIT"}
 SECTION_FLAGS = ALARM_FLAGS | DELAY_FLAGS | {"INTERNAL_WARNING", "EXTERNAL_WARNING"}
+
+RECENT_LINES_KEPT = 50
+
+
+def _utcnow() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def _to_int(token: str) -> int | None:
@@ -84,13 +97,17 @@ class JaRs485Client(threading.Thread):
         port: str,
         access_code: str,
         on_update: Callable[[], None] | None = None,
+        on_event: Callable[[dict], None] | None = None,
     ) -> None:
         super().__init__(daemon=True, name=f"JA-RS485 {port}")
         self._port = port
         self._access_code = access_code
         self._on_update = on_update
+        self._on_event = on_event
         self._pending: list[tuple[float, str]] = []
         self._last_resync = 0.0
+        self._recent_lines: deque[str] = deque(maxlen=RECENT_LINES_KEPT)
+        self._section_changed: dict[int, str] = {}
         self._serial: serial.Serial | None = None
         self._write_lock = threading.Lock()
         self._state_lock = threading.Lock()
@@ -146,6 +163,33 @@ class JaRs485Client(threading.Thread):
             if not self._prf_received:
                 return None
             return peripheral_id in self._prf_active
+
+    def get_section_changed_at(self, section_id: int) -> str | None:
+        """UTC timestamp of the last reported state change of a section."""
+        with self._state_lock:
+            return self._section_changed.get(section_id)
+
+    def snapshot(self) -> dict:
+        """State dump for diagnostics (never includes the access code)."""
+        with self._state_lock:
+            return {
+                "port": self._port,
+                "connected": self._connected,
+                "sections": {str(k): v for k, v in sorted(self._sections.items())},
+                "section_flags": {
+                    str(k): sorted(v)
+                    for k, v in sorted(self._section_flags.items())
+                    if v
+                },
+                "section_changed_at": {
+                    str(k): v for k, v in sorted(self._section_changed.items())
+                },
+                "pg_outputs": {str(k): v for k, v in sorted(self._pg.items())},
+                "peripherals_active": sorted(self._prf_active),
+                "peripherals_seen": sorted(self._prf_seen),
+                "prfstate_received": self._prf_received,
+                "recent_lines": list(self._recent_lines),
+            }
 
     # ------------------------------------------------------------------
     # Commands
@@ -315,9 +359,11 @@ class JaRs485Client(threading.Thread):
     # ------------------------------------------------------------------
 
     def _handle_line(self, line: str) -> None:
+        self._recent_lines.append(f"{_utcnow()} {line}")
         parts = line.split()
         head = parts[0]
         changed = False
+        events: list[dict] = []
 
         if head == "OK":
             _LOGGER.debug("Command confirmed: OK")
@@ -345,6 +391,7 @@ class JaRs485Client(threading.Thread):
                 if section_id is not None:
                     if self._sections.get(section_id) != parts[2]:
                         changed = True
+                        self._section_changed[section_id] = _utcnow()
                         # Delay flags always end with a state change; alarm
                         # flags are cleared once the section is disarmed.
                         flags = self._section_flags.get(section_id)
@@ -377,15 +424,28 @@ class JaRs485Client(threading.Thread):
                     if section_id is None:
                         continue
                     flags = self._section_flags.setdefault(section_id, set())
-                    if active and head not in flags:
+                    transitioned = (head not in flags) if active else (head in flags)
+                    if not transitioned:
+                        continue
+                    if active:
                         flags.add(head)
-                        changed = True
-                    elif not active and head in flags:
+                    else:
                         flags.discard(head)
-                        changed = True
+                    changed = True
+                    if head in ALARM_FLAGS:
+                        events.append(
+                            {
+                                "type": ALARM_TYPES[head],
+                                "flag": head,
+                                "section": section_id,
+                                "active": active,
+                            }
+                        )
             else:
                 _LOGGER.debug("Unhandled line from JA-121T: %s", line)
 
+        for event in events:
+            self._notify_event(event)
         if changed:
             self._notify()
 
@@ -396,3 +456,11 @@ class JaRs485Client(threading.Thread):
             self._on_update()
         except Exception:  # noqa: BLE001 — never let a callback kill the reader
             _LOGGER.exception("Error in update callback")
+
+    def _notify_event(self, data: dict) -> None:
+        if self._on_event is None:
+            return
+        try:
+            self._on_event(data)
+        except Exception:  # noqa: BLE001 — never let a callback kill the reader
+            _LOGGER.exception("Error in event callback")
