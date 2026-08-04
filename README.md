@@ -2,6 +2,8 @@
 
 # JA-RS485 — Jablotron alarm in Home Assistant over the JA-121T RS-485 interface
 
+**English** | [Čeština](README.cs.md)
+
 [![Validate](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml/badge.svg)](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml)
 [![GitHub release](https://img.shields.io/github/v/release/vlioscz/JA-RS485)](https://github.com/vlioscz/JA-RS485/releases)
 [![HACS](https://img.shields.io/badge/HACS-custom-orange.svg)](https://hacs.xyz)
@@ -10,6 +12,25 @@
 Custom Home Assistant integration for reading and controlling a **Jablotron JABLOTRON 100 / 100+** alarm system
 through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbernicove-rozhrani-rs-485)**
 (ASCII protocol, 9600 Bd, 8N1 — per Jablotron manual MNN51111), typically connected via a USB↔RS-485 converter.
+
+## Why RS-485? (compared to other Jablotron integrations)
+
+There are other ways to get a Jablotron system into Home Assistant:
+
+- **[Jablotron Cloud](https://github.com/Pigotka/ha-cc-jablotron-cloud)** — uses the MyJABLOTRON
+  cloud API. No wiring at all, but it depends on your internet connection *and* on the Jablotron
+  cloud being up: when either is down, so is your alarm in HA.
+- **[Jablotron 100](https://github.com/kukulich/home-assistant-jablotron100)** — connects directly
+  to the control panel over USB. Feature-rich, but it requires the HA machine to sit next to the
+  panel, a USB cable someone can knock loose, and over any real distance you have to work out how
+  to extend USB (which it was never designed for).
+
+This integration may not offer every feature of those two, but it is the **hardest to break**:
+the JA-121T talks over a dedicated RS-485 bus — an industrial standard designed for runs of
+hundreds of metres over a cheap twisted pair, galvanically isolated, on screw terminals that
+don't fall out. Everything is **fully local** (no internet, no cloud account), and if the link
+does drop, the integration reconnects by itself and tells you about it
+(`binary_sensor.jablotron_bus_connection`).
 
 ## Features
 
