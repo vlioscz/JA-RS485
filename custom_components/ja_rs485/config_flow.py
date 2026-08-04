@@ -29,6 +29,7 @@ from .const import (
     CONF_ACCESS_CODE,
     CONF_ALLOW_PG_CONTROL,
     CONF_CONTROL_MODE,
+    CONF_IMPULSE_PGS,
     CONF_CONTROL_PGS,
     CONF_CONTROL_SECTIONS,
     CONF_PERIPHERALS,
@@ -321,6 +322,9 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                         MAX_PERIPHERAL,
                         min_value=0,
                     ),
+                    CONF_IMPULSE_PGS: _clean_id_list(
+                        user_input.get(CONF_IMPULSE_PGS, []), MAX_PG
+                    ),
                     CONF_CONTROL_MODE: control_mode,
                     CONF_CONTROL_SECTIONS: _clean_id_list(
                         user_input.get(CONF_CONTROL_SECTIONS, []), MAX_SECTION
@@ -373,6 +377,17 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(CONF_PERIPHERALS, default=current_prf): SelectSelector(
                     SelectSelectorConfig(
                         options=prf_options,
+                        multiple=True,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(
+                    CONF_IMPULSE_PGS,
+                    default=list(options.get(CONF_IMPULSE_PGS) or []),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=pg_options,
                         multiple=True,
                         custom_value=True,
                         mode=SelectSelectorMode.DROPDOWN,

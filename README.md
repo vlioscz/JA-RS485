@@ -17,7 +17,10 @@ through the **[JA-121T RS-485 bus interface](https://portal.jablotron.com/cs/sbe
   with proper HA states: `disarmed`, `arming` (exit delay), `pending` (entry delay),
   `armed_away`, `armed_home` and `triggered` (intruder / fire / panic alarm)
 - **Switch** entity per PG output (PGON / PGOFF), non-optimistic — state changes only after
-  the panel confirms them
+  the panel confirms them. PGs configured as **impulse** in F-Link can be listed in the
+  options and become stateless **button** entities (press = PGON) instead
+- **Device triggers** — pick "Intruder / Fire / Panic / Any alarm" (optionally for one
+  section) directly in the UI automation editor
 - **Diagnostic sensor** per section with the raw JA-121T state (`READY`, `ARMED`, `ARMED_PART`,
   `BLOCKED`, `SERVICE`, …) and active flags as attributes
 - **Binary sensor** per peripheral (detector) decoded from the `PRFSTATE` bitmap — created

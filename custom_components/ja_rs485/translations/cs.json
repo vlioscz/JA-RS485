@@ -47,12 +47,27 @@
           "sections": "Sekce (viditelné)",
           "pg_outputs": "PG výstupy (viditelné)",
           "peripherals": "Periferie (čidla)",
+          "impulse_pgs": "Impulsní PG (tlačítka)",
           "control_mode": "Typ ovládání sekcí",
           "control_sections": "Ovladatelné sekce (prázdné = všechny viditelné)",
           "allow_pg_control": "Povolit ovládání PG výstupů",
           "control_pgs": "Ovladatelné PG výstupy (prázdné = všechny viditelné)"
+        },
+        "data_description": {
+          "impulse_pgs": "PG výstupy nakonfigurované v F-Linku jako impuls (samy se vypnou po nastaveném čase). V HA se vytvoří jako tlačítko (stisk = PGON) místo přepínače. Podporuje rozsahy, např. 8-12."
         }
       }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "intruder_alarm": "Poplach vloupání",
+      "fire_alarm": "Požární poplach",
+      "panic_alarm": "Tísňový poplach",
+      "any_alarm": "Jakýkoliv poplach"
+    },
+    "extra_fields": {
+      "section": "Sekce (volitelné, prázdné = všechny)"
     }
   },
   "selector": {

@@ -10,6 +10,10 @@ CONF_ACCESS_CODE = "access_code"
 CONF_SECTIONS = "sections"
 CONF_PG_OUTPUTS = "pg_outputs"
 CONF_PERIPHERALS = "peripherals"
+# PGs configured as impulse in F-Link become stateless button entities
+# (press = PGON) instead of switches. The protocol cannot detect the PG
+# function type, so the user mirrors it here.
+CONF_IMPULSE_PGS = "impulse_pgs"
 
 # Control permissions — mirror the rights granted to the access code in
 # F-Link so the integration never even attempts a command it may not use.
@@ -77,6 +81,10 @@ def is_section_allowed(options: dict, section_id: int) -> bool:
 def is_pg_allowed(options: dict, pg_id: int) -> bool:
     selected = options.get(CONF_PG_OUTPUTS) or []
     return not selected or pg_id in expand_tokens(selected)
+
+
+def is_impulse_pg(options: dict, pg_id: int) -> bool:
+    return pg_id in expand_tokens(options.get(CONF_IMPULSE_PGS) or [])
 
 
 def is_peripheral_allowed(options: dict, peripheral_id: int) -> bool:

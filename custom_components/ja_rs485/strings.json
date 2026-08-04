@@ -47,12 +47,27 @@
           "sections": "Sections (visible)",
           "pg_outputs": "PG outputs (visible)",
           "peripherals": "Peripherals (detectors)",
+          "impulse_pgs": "Impulse PGs (buttons)",
           "control_mode": "Section control type",
           "control_sections": "Controllable sections (empty = all visible)",
           "allow_pg_control": "Allow PG output control",
           "control_pgs": "Controllable PG outputs (empty = all visible)"
+        },
+        "data_description": {
+          "impulse_pgs": "PG outputs configured as impulse in F-Link (they switch off by themselves after the set time). Created as a button entity in HA (press = PGON) instead of a switch. Supports ranges, e.g. 8-12."
         }
       }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "intruder_alarm": "Intruder alarm",
+      "fire_alarm": "Fire alarm",
+      "panic_alarm": "Panic alarm",
+      "any_alarm": "Any alarm"
+    },
+    "extra_fields": {
+      "section": "Section (optional, empty = all)"
     }
   },
   "selector": {

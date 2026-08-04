@@ -27,6 +27,7 @@ from .const import (
     can_arm,
     can_control_pg,
     can_disarm,
+    is_impulse_pg,
     is_peripheral_allowed,
     is_pg_allowed,
     is_section_allowed,
@@ -43,6 +44,7 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [
     Platform.ALARM_CONTROL_PANEL,
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
@@ -74,8 +76,17 @@ def _async_prune_registry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         if match := re.search(r"_(?:section|zone)_(\d+)$", unique_id):
             if not is_section_allowed(entry.options, int(match.group(1))):
                 ent_reg.async_remove(reg_entry.entity_id)
+        elif match := re.search(r"_pg_button_(\d+)$", unique_id):
+            pg_id = int(match.group(1))
+            if not is_pg_allowed(entry.options, pg_id) or not is_impulse_pg(
+                entry.options, pg_id
+            ):
+                ent_reg.async_remove(reg_entry.entity_id)
         elif match := re.search(r"_pg_(\d+)$", unique_id):
-            if not is_pg_allowed(entry.options, int(match.group(1))):
+            pg_id = int(match.group(1))
+            if not is_pg_allowed(entry.options, pg_id) or is_impulse_pg(
+                entry.options, pg_id
+            ):
                 ent_reg.async_remove(reg_entry.entity_id)
         elif match := re.search(r"_peripheral_(\d+)$", unique_id):
             if not is_peripheral_allowed(entry.options, int(match.group(1))):
