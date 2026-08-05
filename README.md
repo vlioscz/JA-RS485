@@ -108,9 +108,12 @@ does drop, the integration reconnects by itself and tells you about it
 
 ### HACS (recommended)
 
-1. **HACS → ⋮ → Custom repositories**, add `https://github.com/vlioscz/JA-RS485`
-   as type **Integration** (skip this step once the repository is in the HACS default store).
-2. Search for **JA-RS485** in HACS, download it and restart Home Assistant.
+[![Open your Home Assistant instance and open this repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vlioscz&repository=JA-RS485&category=integration)
+
+1. Click the button above (or **HACS → ⋮ → Custom repositories**, add
+   `https://github.com/vlioscz/JA-RS485` as type **Integration** — skip once the repository
+   is in the HACS default store).
+2. Download **JA-RS485** and restart Home Assistant.
 
 ### Manual
 
@@ -119,7 +122,9 @@ does drop, the integration reconnects by itself and tells you about it
 
 ### Setup
 
-1. **Settings → Devices & services → Add integration → JA-RS485.**
+[![Open your Home Assistant instance and start setting up this integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ja_rs485)
+
+1. Click the button above, or **Settings → Devices & services → Add integration → JA-RS485.**
 2. Pick the serial port — prefer the stable path `/dev/serial/by-id/usb-...` over `/dev/ttyUSB0`
    (survives reboots and re-plugs) — and enter the access code (with prefix if your system uses
    prefixes, e.g. `1*1234`).

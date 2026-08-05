@@ -110,9 +110,12 @@ linka přece jen spadla, integrace se sama znovu připojí a dá ti o tom vědě
 
 ### HACS (doporučeno)
 
-1. **HACS → ⋮ → Vlastní repozitáře**, přidej `https://github.com/vlioscz/JA-RS485`
-   jako typ **Integrace** (tento krok přeskoč, až bude repozitář ve výchozím HACS store).
-2. Vyhledej v HACS **JA-RS485**, stáhni a restartuj Home Assistant.
+[![Otevře tvou instanci Home Assistanta a zobrazí tento repozitář v HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vlioscz&repository=JA-RS485&category=integration)
+
+1. Klikni na tlačítko výše (nebo **HACS → ⋮ → Vlastní repozitáře**, přidej
+   `https://github.com/vlioscz/JA-RS485` jako typ **Integrace** — tento krok přeskoč,
+   až bude repozitář ve výchozím HACS store).
+2. Stáhni **JA-RS485** a restartuj Home Assistant.
 
 ### Ručně
 
@@ -121,7 +124,9 @@ linka přece jen spadla, integrace se sama znovu připojí a dá ti o tom vědě
 
 ### Nastavení
 
-1. **Nastavení → Zařízení a služby → Přidat integraci → JA-RS485.**
+[![Otevře tvou instanci Home Assistanta a spustí nastavení této integrace.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ja_rs485)
+
+1. Klikni na tlačítko výše, nebo **Nastavení → Zařízení a služby → Přidat integraci → JA-RS485.**
 2. Vyber sériový port — radši stabilní cestu `/dev/serial/by-id/usb-...` než `/dev/ttyUSB0`
    (přežije restarty a přepojení) — a zadej přístupový kód (s prefixem, pokud jej systém
    používá, např. `1*1234`).
