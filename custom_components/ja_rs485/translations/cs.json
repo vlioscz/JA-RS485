@@ -41,7 +41,24 @@
   "options": {
     "step": {
       "init": {
-        "title": "Filtr entit",
+        "title": "Nastavení JA-RS485",
+        "menu_options": {
+          "basic": "Filtry entit a práva ovládání",
+          "import_flink": "Import názvů z F-Linku (CSV/TXT)"
+        }
+      },
+      "import_flink": {
+        "title": "Import z F-Linku",
+        "description": "V F-Linku otevři stránku Sekce / PG výstupy / Zařízení a použij export do CSV nebo TXT. Soubory nahraj sem — na pořadí ani pojmenování nezáleží, typ se pozná automaticky z hlavičky. Import nastaví názvy entit (ruční přejmenování v HA zůstává nadřazené) a z PG exportu umí převzít i konfiguraci: sloupec Funkce určí impulsní PG (tlačítka) a skryje nepoužívané výstupy (Funkce = Vypnuto).",
+        "data": {
+          "file_sections": "Export sekcí",
+          "file_pgs": "Export PG výstupů",
+          "file_peripherals": "Export zařízení (periferií)",
+          "apply_pg_config": "Převzít z PG exportu i viditelnost a impulsní PG"
+        }
+      },
+      "basic": {
+        "title": "Filtry entit a práva ovládání",
         "description": "Vyber, které sekce a PG výstupy se mají v Home Assistantu vytvářet jako entity (např. jen ty, ke kterým má přístupový kód práva). Prázdný výběr = zobrazit vše, co ústředna hlásí. Odebrané entity budou z HA odstraněny.\n\n**Rozsahy:** do každého pole můžeš místo jednotlivých čísel napsat i rozsah — napiš např. `8-20` (nebo rovnou `1-6 8-20 25`) a potvrď jako vlastní hodnotu.\n\n**Periferie (čidla) jsou pouze informativní:** ústředna jejich stavy vysílá jen cca každých 10 sekund, takže se v HA propisují se zpožděním 0–10 s a krátké události mohou zapadnout. Pro jakékoliv ovládání (automatizace, spínání světel apod.) veď čidlo v F-Linku přes PG výstup — změny PG se propisují okamžitě. Čísla pozic čidel odpovídají záložce Zařízení v F-Linku (0 = ústředna); prázdný výběr = čidla se vytvoří automaticky při první aktivaci.",
         "data": {
           "sections": "Sekce (viditelné)",
@@ -57,6 +74,10 @@
           "impulse_pgs": "PG výstupy nakonfigurované v F-Linku jako impuls (samy se vypnou po nastaveném čase). V HA se vytvoří jako tlačítko (stisk = PGON) místo přepínače. Podporuje rozsahy, např. 8-12."
         }
       }
+    },
+    "error": {
+      "invalid_file": "Soubor se nepodařilo přečíst jako export z F-Linku — zkontroluj, že jde o CSV/TXT export stránky Sekce, PG výstupy nebo Zařízení.",
+      "no_files": "Nebyl nahrán žádný soubor."
     }
   },
   "device_automation": {

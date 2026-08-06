@@ -41,7 +41,24 @@
   "options": {
     "step": {
       "init": {
-        "title": "Entity filter",
+        "title": "JA-RS485 settings",
+        "menu_options": {
+          "basic": "Entity filters and control permissions",
+          "import_flink": "Import names from F-Link (CSV/TXT)"
+        }
+      },
+      "import_flink": {
+        "title": "Import from F-Link",
+        "description": "In F-Link open the Sections / PG outputs / Devices page and use its CSV or TXT export. Upload the files here — order and file names do not matter, the type is detected from the header automatically. The import sets entity names (manual renames in HA stay on top) and can also take configuration from the PG export: the Function column determines impulse PGs (buttons) and hides unused outputs (Function = Off).",
+        "data": {
+          "file_sections": "Sections export",
+          "file_pgs": "PG outputs export",
+          "file_peripherals": "Devices (peripherals) export",
+          "apply_pg_config": "Also apply visibility and impulse PGs from the PG export"
+        }
+      },
+      "basic": {
+        "title": "Entity filters and control permissions",
         "description": "Choose which sections and PG outputs are created as entities in Home Assistant (e.g. only those your access code has rights to). Empty selection = expose everything the panel reports. Deselected entities are removed from HA.\n\n**Ranges:** every field also accepts ranges — type e.g. `8-20` (or `1-6 8-20 25` at once) and confirm it as a custom value.\n\n**Peripherals (detectors) are informational only:** the panel broadcasts their states only about every 10 seconds, so they appear in HA with a 0-10 s delay and short events may be missed. For any control (automations, switching lights, etc.) route the detector through a PG output in F-Link — PG changes are pushed instantly. Detector position numbers match the Devices tab in F-Link (0 = control panel); empty selection = detectors appear automatically on their first activation.",
         "data": {
           "sections": "Sections (visible)",
@@ -57,6 +74,10 @@
           "impulse_pgs": "PG outputs configured as impulse in F-Link (they switch off by themselves after the set time). Created as a button entity in HA (press = PGON) instead of a switch. Supports ranges, e.g. 8-12."
         }
       }
+    },
+    "error": {
+      "invalid_file": "The file could not be read as an F-Link export — make sure it is the CSV/TXT export of the Sections, PG outputs or Devices page.",
+      "no_files": "No file was uploaded."
     }
   },
   "device_automation": {

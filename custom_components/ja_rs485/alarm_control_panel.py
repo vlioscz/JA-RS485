@@ -14,7 +14,14 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import ALARM_FLAGS, JaRs485Client
-from .const import DOMAIN, can_arm, can_disarm, is_section_allowed, signal_update
+from .const import (
+    DOMAIN,
+    can_arm,
+    can_disarm,
+    get_custom_name,
+    is_section_allowed,
+    signal_update,
+)
 from .entity import JaRs485Entity
 
 # Mapping of JA-121T section states to HA alarm states. MAINTENANCE, SERVICE
@@ -63,7 +70,10 @@ class JaSectionAlarmPanel(JaRs485Entity, AlarmControlPanelEntity):
         super().__init__(client, entry)
         self.section_id = section_id
         self._options = entry.options
-        self._attr_name = f"Jablotron Section {section_id}"
+        self._attr_name = (
+            get_custom_name(entry.options, "sections", section_id)
+            or f"Jablotron Section {section_id}"
+        )
         self._attr_unique_id = f"{entry.entry_id}_section_{section_id}"
         # Mirror the F-Link rights configured in the options: expose arm
         # buttons only when arming is actually permitted. (The entry reloads

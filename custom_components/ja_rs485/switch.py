@@ -15,6 +15,7 @@ from .client import JaRs485Client
 from .const import (
     DOMAIN,
     can_control_pg,
+    get_custom_name,
     is_impulse_pg,
     is_pg_allowed,
     signal_update,
@@ -55,7 +56,9 @@ class JaPgSwitch(JaRs485Entity, SwitchEntity):
         super().__init__(client, entry)
         self.pg_id = pg_id
         self._options = entry.options
-        self._attr_name = f"Jablotron PG {pg_id}"
+        self._attr_name = (
+            get_custom_name(entry.options, "pgs", pg_id) or f"Jablotron PG {pg_id}"
+        )
         self._attr_unique_id = f"{entry.entry_id}_pg_{pg_id}"
 
     @property

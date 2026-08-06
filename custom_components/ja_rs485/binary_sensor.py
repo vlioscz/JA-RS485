@@ -20,7 +20,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .client import JaRs485Client
-from .const import DOMAIN, selected_peripherals, signal_update
+from .const import DOMAIN, get_custom_name, selected_peripherals, signal_update
 from .entity import JaRs485Entity
 
 
@@ -80,7 +80,10 @@ class JaPeripheralBinarySensor(JaRs485Entity, BinarySensorEntity):
     def __init__(self, client: JaRs485Client, entry: ConfigEntry, peripheral_id: int) -> None:
         super().__init__(client, entry)
         self.peripheral_id = peripheral_id
-        self._attr_name = f"Jablotron Peripheral {peripheral_id}"
+        self._attr_name = (
+            get_custom_name(entry.options, "peripherals", peripheral_id)
+            or f"Jablotron Peripheral {peripheral_id}"
+        )
         self._attr_unique_id = f"{entry.entry_id}_peripheral_{peripheral_id}"
 
     @property

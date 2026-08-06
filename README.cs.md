@@ -49,6 +49,11 @@ linka přece jen spadla, integrace se sama znovu připojí a dá ti o tom vědě
   automaticky při první aktivaci, nebo vyber pozice explicitně v nastavení integrace (čísla
   odpovídají záložce Zařízení v F-Linku, 0 = ústředna). Pozn.: protokol nenese názvy ani typy
   čidel — entity si přejmenuj v HA
+- **Import z F-Linku** — protokol JA-121T názvy nenese, ale F-Link umí exportovat stránky
+  Sekce / PG výstupy / Zařízení do CSV/TXT. Nahraj tyto exporty v nastavení integrace
+  („Import názvů z F-Linku") a entity dostanou skutečné názvy; z PG exportu se navíc
+  automaticky nastaví seznam impulsních PG (tlačítek) a skryjí nepoužívané výstupy.
+  Čistě lokální, žádný cloud
 - **Filtr entit** v nastavení integrace — vyber, které sekce, PG výstupy a periferie se mají
   vytvářet jako entity (stavové dotazy nejsou omezené právy kódu, takže standardně je vidět
   vše, co ústředna hlásí)

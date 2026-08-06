@@ -14,6 +14,9 @@ CONF_PERIPHERALS = "peripherals"
 # (press = PGON) instead of switches. The protocol cannot detect the PG
 # function type, so the user mirrors it here.
 CONF_IMPULSE_PGS = "impulse_pgs"
+# Custom names imported from F-Link exports:
+# {"sections": {"1": "..."}, "pgs": {...}, "peripherals": {...}}
+CONF_NAMES = "names"
 
 # Control permissions — mirror the rights granted to the access code in
 # F-Link so the integration never even attempts a command it may not use.
@@ -81,6 +84,11 @@ def is_section_allowed(options: dict, section_id: int) -> bool:
 def is_pg_allowed(options: dict, pg_id: int) -> bool:
     selected = options.get(CONF_PG_OUTPUTS) or []
     return not selected or pg_id in expand_tokens(selected)
+
+
+def get_custom_name(options: dict, kind: str, item_id: int) -> str | None:
+    """Imported F-Link name for a section/PG/peripheral, if any."""
+    return (options.get(CONF_NAMES) or {}).get(kind, {}).get(str(item_id))
 
 
 def is_impulse_pg(options: dict, pg_id: int) -> bool:

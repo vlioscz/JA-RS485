@@ -48,6 +48,10 @@ does drop, the integration reconnects by itself and tells you about it
   automatically on first activation, or select positions explicitly in the integration options
   (numbers match the Devices tab in F-Link, 0 = control panel). Note: the protocol carries no
   peripheral names or types — rename entities in HA as needed
+- **F-Link import** — the JA-121T protocol carries no names, but F-Link can export the
+  Sections / PG outputs / Devices pages to CSV/TXT. Upload those exports in the integration
+  options ("Import from F-Link") and the entities get their real names; the PG export also
+  auto-configures the impulse-PG button list and hides unused outputs. Fully local, no cloud
 - **Entity filter** in the integration options — choose which sections, PG outputs and
   peripherals become entities (state queries are not restricted by code permissions, so
   everything the panel reports is visible by default)

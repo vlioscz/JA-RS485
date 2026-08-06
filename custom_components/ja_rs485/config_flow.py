@@ -12,9 +12,12 @@ import voluptuous as vol
 from serial.tools import list_ports
 
 from homeassistant import config_entries
+from homeassistant.components.file_upload import process_uploaded_file
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     BooleanSelector,
+    FileSelector,
+    FileSelectorConfig,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -25,11 +28,13 @@ from homeassistant.helpers.selector import (
 )
 
 from .client import BAUDRATE
+from .flink_import import PG_KIND, compress_ranges, parse_flink_export
 from .const import (
     CONF_ACCESS_CODE,
     CONF_ALLOW_PG_CONTROL,
     CONF_CONTROL_MODE,
     CONF_IMPULSE_PGS,
+    CONF_NAMES,
     CONF_CONTROL_PGS,
     CONF_CONTROL_SECTIONS,
     CONF_PERIPHERALS,
@@ -299,10 +304,81 @@ class JaRs485ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
+FILE_SECTIONS = "file_sections"
+FILE_PGS = "file_pgs"
+FILE_PERIPHERALS = "file_peripherals"
+APPLY_PG_CONFIG = "apply_pg_config"
+
+
 class JaRs485OptionsFlow(config_entries.OptionsFlow):
-    """Options: choose which sections and PG outputs become entities."""
+    """Options: entity filters/permissions and F-Link name import."""
 
     async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        return self.async_show_menu(
+            step_id="init", menu_options=["basic", "import_flink"]
+        )
+
+    async def async_step_import_flink(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Import names (and PG configuration) from F-Link CSV/TXT exports."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            imports = []
+            for key in (FILE_SECTIONS, FILE_PGS, FILE_PERIPHERALS):
+                file_id = user_input.get(key)
+                if not file_id:
+                    continue
+                try:
+                    with process_uploaded_file(self.hass, file_id) as path:
+                        parsed = parse_flink_export(path.read_bytes())
+                except (OSError, ValueError):
+                    parsed = None
+                if parsed is None or (not parsed.names and not parsed.used):
+                    errors["base"] = "invalid_file"
+                    break
+                imports.append(parsed)
+            if not errors and not imports:
+                errors["base"] = "no_files"
+            if not errors:
+                options = dict(self.config_entry.options)
+                names = {
+                    kind: dict(values)
+                    for kind, values in (options.get(CONF_NAMES) or {}).items()
+                }
+                for parsed in imports:
+                    bucket = names.setdefault(parsed.kind, {})
+                    bucket.update(
+                        {str(pos): name for pos, name in parsed.names.items()}
+                    )
+                    if parsed.kind == PG_KIND and user_input.get(APPLY_PG_CONFIG, True):
+                        if parsed.used:
+                            options[CONF_PG_OUTPUTS] = compress_ranges(parsed.used)
+                        options[CONF_IMPULSE_PGS] = compress_ranges(parsed.impulse)
+                options[CONF_NAMES] = names
+                return self.async_create_entry(data=options)
+
+        schema = vol.Schema(
+            {
+                vol.Optional(FILE_SECTIONS): FileSelector(
+                    FileSelectorConfig(accept=".csv,.txt")
+                ),
+                vol.Optional(FILE_PGS): FileSelector(
+                    FileSelectorConfig(accept=".csv,.txt")
+                ),
+                vol.Optional(FILE_PERIPHERALS): FileSelector(
+                    FileSelectorConfig(accept=".csv,.txt")
+                ),
+                vol.Optional(APPLY_PG_CONFIG, default=True): BooleanSelector(),
+            }
+        )
+        return self.async_show_form(
+            step_id="import_flink", data_schema=schema, errors=errors
+        )
+
+    async def async_step_basic(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         if user_input is not None:
@@ -310,7 +386,10 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
             if control_mode not in CONTROL_MODES:
                 control_mode = CONTROL_FULL
             return self.async_create_entry(
+                # Merge over existing options so keys managed by other steps
+                # (e.g. imported names) survive an edit of the filters.
                 data={
+                    **dict(self.config_entry.options),
                     CONF_SECTIONS: _clean_id_list(
                         user_input.get(CONF_SECTIONS, []), MAX_SECTION
                     ),
@@ -431,4 +510,4 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                 ),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+        return self.async_show_form(step_id="basic", data_schema=schema)
