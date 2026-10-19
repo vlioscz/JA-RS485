@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- Removed an obsolete installation screenshot left over from the original
+  prototype repository; full repository sweep found no other leftovers
+  (no dead imports, translation keys in parity across languages).
+
 ## 0.3.1
 
 Review fixes from the HACS default-store submission:
