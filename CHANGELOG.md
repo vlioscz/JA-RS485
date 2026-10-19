@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1
+
+Review fixes from the HACS default-store submission:
+
+- The uploaded F-Link export is now opened and read in an executor thread
+  instead of the event loop (relevant on slow storage such as SD cards).
+- The installation screenshot moved out of `custom_components/` to `docs/`
+  so it is no longer installed on every system.
+
 ## 0.3.0
 
 - **F-Link CSV/TXT import** — a new "Import from F-Link" step in the integration

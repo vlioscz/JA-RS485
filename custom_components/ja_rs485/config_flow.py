@@ -28,7 +28,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .client import BAUDRATE
-from .flink_import import PG_KIND, compress_ranges, parse_flink_export
+from .flink_import import FlinkImport, PG_KIND, compress_ranges, parse_flink_export
 from .const import (
     CONF_ACCESS_CODE,
     CONF_ALLOW_PG_CONTROL,
@@ -310,6 +310,12 @@ FILE_PERIPHERALS = "file_peripherals"
 APPLY_PG_CONFIG = "apply_pg_config"
 
 
+def _read_uploaded_export(hass, file_id: str) -> FlinkImport | None:
+    """Open, read and parse one uploaded export (blocking — executor only)."""
+    with process_uploaded_file(hass, file_id) as path:
+        return parse_flink_export(path.read_bytes())
+
+
 class JaRs485OptionsFlow(config_entries.OptionsFlow):
     """Options: entity filters/permissions and F-Link name import."""
 
@@ -332,8 +338,9 @@ class JaRs485OptionsFlow(config_entries.OptionsFlow):
                 if not file_id:
                     continue
                 try:
-                    with process_uploaded_file(self.hass, file_id) as path:
-                        parsed = parse_flink_export(path.read_bytes())
+                    parsed = await self.hass.async_add_executor_job(
+                        _read_uploaded_export, self.hass, file_id
+                    )
                 except (OSError, ValueError):
                     parsed = None
                 if parsed is None or (not parsed.names and not parsed.used):
