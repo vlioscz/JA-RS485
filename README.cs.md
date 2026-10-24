@@ -1,161 +1,161 @@
 <p align="center"><img src="brands/logo@2x.png" alt="JA-RS485" width="461"></p>
 
-# JA-RS485 â€” Jablotron v Home Assistantu pĹ™es sbÄ›rnicovĂ© rozhranĂ­ JA-121T (RS-485)
+# JA-RS485 — Jablotron v Home Assistantu přes sběrnicové rozhraní JA-121T (RS-485)
 
-[English](README.md) | **ÄŚeĹˇtina**
+[English](README.md) | **Čeština**
 
 [![Validate](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml/badge.svg)](https://github.com/vlioscz/JA-RS485/actions/workflows/validate.yml)
 [![GitHub release](https://img.shields.io/github/v/release/vlioscz/JA-RS485)](https://github.com/vlioscz/JA-RS485/releases)
 [![HACS](https://img.shields.io/badge/HACS-Default-blue.svg)](https://hacs.xyz)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Custom integrace pro Home Assistant â€” ÄŤtenĂ­ a ovlĂˇdĂˇnĂ­ zabezpeÄŤovacĂ­ho systĂ©mu
-**Jablotron JABLOTRON 100 / 100+** pĹ™es **[sbÄ›rnicovĂ© rozhranĂ­ JA-121T (RS-485)](https://portal.jablotron.com/cs/sbernicove-rozhrani-rs-485)**
-(ASCII protokol, 9600 Bd, 8N1 â€” dle Jablotron manuĂˇlu MNN51111), typicky pĹ™ipojenĂ© USBâ†”RS-485 pĹ™evodnĂ­kem.
+Custom integrace pro Home Assistant — čtení a ovládání zabezpečovacího systému
+**Jablotron JABLOTRON 100 / 100+** přes **[sběrnicové rozhraní JA-121T (RS-485)](https://portal.jablotron.com/cs/sbernicove-rozhrani-rs-485)**
+(ASCII protokol, 9600 Bd, 8N1 — dle Jablotron manuálu MNN51111), typicky připojené USB↔RS-485 převodníkem.
 
-## ProÄŤ zrovna RS-485? (srovnĂˇnĂ­ s ostatnĂ­mi Jablotron integracemi)
+## Proč zrovna RS-485? (srovnání s ostatními Jablotron integracemi)
 
 Do Home Assistantu jde Jablotron dostat i jinak:
 
-- **[Jablotron Cloud](https://github.com/Pigotka/ha-cc-jablotron-cloud)** â€” pouĹľĂ­vĂˇ cloudovĂ© API
-  MyJABLOTRON. Ĺ˝ĂˇdnĂˇ kabelĂˇĹľ, ale zĂˇvisĂ­ na tvĂ©m internetovĂ©m pĹ™ipojenĂ­ *a* na dostupnosti
-  Jablotron cloudu: kdyĹľ vypadne kterĂ©koliv z toho, vypadne i alarm v HA.
-- **[Jablotron 100](https://github.com/kukulich/home-assistant-jablotron100)** â€” pĹ™ipojuje se
-  pĹ™Ă­mo do ĂşstĹ™edny pĹ™es USB. UmĂ­ toho hodnÄ›, ale HA musĂ­ stĂˇt hned vedle ĂşstĹ™edny, USB kabel
-  mĹŻĹľe nÄ›kdo omylem vytĂˇhnout a na vÄ›tĹˇĂ­ vzdĂˇlenost musĂ­Ĺˇ Ĺ™eĹˇit, jak USB prodlouĹľit (na coĹľ
-  nebylo nikdy stavÄ›nĂ©).
+- **[Jablotron Cloud](https://github.com/Pigotka/ha-cc-jablotron-cloud)** — používá cloudové API
+  MyJABLOTRON. Žádná kabeláž, ale závisí na tvém internetovém připojení *a* na dostupnosti
+  Jablotron cloudu: když vypadne kterékoliv z toho, vypadne i alarm v HA.
+- **[Jablotron 100](https://github.com/kukulich/home-assistant-jablotron100)** — připojuje se
+  přímo do ústředny přes USB. Umí toho hodně, ale HA musí stát hned vedle ústředny, USB kabel
+  může někdo omylem vytáhnout a na větší vzdálenost musíš řešit, jak USB prodloužit (na což
+  nebylo nikdy stavěné).
 
-Tato integrace moĹľnĂˇ nenabĂ­zĂ­ ĂşplnÄ› vĹˇechny funkce tÄ›ch dvou, zato je **nejhĹŻĹ™ rozbitnĂˇ**:
-JA-121T komunikuje po vyhrazenĂ© sbÄ›rnici RS-485 â€” prĹŻmyslovĂ©m standardu navrĹľenĂ©m na stovky
-metrĹŻ obyÄŤejnĂ© kroucenĂ© dvojlinky, s galvanickĂ˝m oddÄ›lenĂ­m a ĹˇroubovacĂ­mi svorkami, kterĂ©
-nevypadnou. VĹˇechno bÄ›ĹľĂ­ **ÄŤistÄ› lokĂˇlnÄ›** (ĹľĂˇdnĂ˝ internet, ĹľĂˇdnĂ˝ cloudovĂ˝ ĂşÄŤet), a kdyby
-linka pĹ™ece jen spadla, integrace se sama znovu pĹ™ipojĂ­ a dĂˇ ti o tom vÄ›dÄ›t
+Tato integrace možná nenabízí úplně všechny funkce těch dvou, zato je **nejhůř rozbitná**:
+JA-121T komunikuje po vyhrazené sběrnici RS-485 — průmyslovém standardu navrženém na stovky
+metrů obyčejné kroucené dvojlinky, s galvanickým oddělením a šroubovacími svorkami, které
+nevypadnou. Všechno běží **čistě lokálně** (žádný internet, žádný cloudový účet), a kdyby
+linka přece jen spadla, integrace se sama znovu připojí a dá ti o tom vědět
 (`binary_sensor.jablotron_bus_connection`).
 
 ## Funkce
 
-- **Alarm panel** (entita `alarm_control_panel`) pro kaĹľdou sekci â€” zapnutĂ­ (SET), ÄŤĂˇsteÄŤnĂ©
-  zapnutĂ­ (SETP), vypnutĂ­ (UNSET), se sprĂˇvnĂ˝mi stavy HA: `disarmed`, `arming` (odchodovĂ©
-  zpoĹľdÄ›nĂ­), `pending` (pĹ™Ă­chodovĂ© zpoĹľdÄ›nĂ­), `armed_away`, `armed_home` a `triggered`
-  (poplach vloupĂˇnĂ­ / poĹľĂˇr / tĂ­seĹ)
-- **Switch** pro kaĹľdĂ˝ PG vĂ˝stup (PGON / PGOFF), bez optimismu â€” stav se pĹ™epne aĹľ potĂ©,
-  co ho ĂşstĹ™edna potvrdĂ­. PG nakonfigurovanĂ© v F-Linku jako **impuls** staÄŤĂ­ uvĂ©st
-  v nastavenĂ­ a vytvoĹ™Ă­ se mĂ­sto pĹ™epĂ­naÄŤe jako **tlaÄŤĂ­tko** (stisk = PGON)
-- **Device triggery** â€” â€žPoplach vloupĂˇnĂ­ / PoĹľĂˇrnĂ­ / TĂ­sĹovĂ˝ / JakĂ˝koliv" (volitelnÄ› pro
-  jednu sekci) vybereĹˇ pĹ™Ă­mo v UI editoru automatizacĂ­
-- **DiagnostickĂ˝ sensor** pro kaĹľdou sekci se surovĂ˝m stavem JA-121T (`READY`, `ARMED`,
-  `ARMED_PART`, `BLOCKED`, `SERVICE`, â€¦) a aktivnĂ­mi pĹ™Ă­znaky v atributech
-- **Binary sensor** pro kaĹľdou periferii (ÄŤidlo) dekĂłdovanĂ˝ z bitmapy `PRFSTATE` â€” vytvoĹ™Ă­ se
-  automaticky pĹ™i prvnĂ­ aktivaci, nebo vyber pozice explicitnÄ› v nastavenĂ­ integrace (ÄŤĂ­sla
-  odpovĂ­dajĂ­ zĂˇloĹľce ZaĹ™Ă­zenĂ­ v F-Linku, 0 = ĂşstĹ™edna). Pozn.: protokol nenese nĂˇzvy ani typy
-  ÄŤidel â€” entity si pĹ™ejmenuj v HA
-- **Import z F-Linku** â€” protokol JA-121T nĂˇzvy nenese, ale F-Link umĂ­ exportovat strĂˇnky
-  Sekce / PG vĂ˝stupy / ZaĹ™Ă­zenĂ­ do CSV/TXT. Nahraj tyto exporty v nastavenĂ­ integrace
-  (â€žImport nĂˇzvĹŻ z F-Linku") a entity dostanou skuteÄŤnĂ© nĂˇzvy; z PG exportu se navĂ­c
-  automaticky nastavĂ­ seznam impulsnĂ­ch PG (tlaÄŤĂ­tek) a skryjĂ­ nepouĹľĂ­vanĂ© vĂ˝stupy.
-  ÄŚistÄ› lokĂˇlnĂ­, ĹľĂˇdnĂ˝ cloud
-- **Filtr entit** v nastavenĂ­ integrace â€” vyber, kterĂ© sekce, PG vĂ˝stupy a periferie se majĂ­
-  vytvĂˇĹ™et jako entity (stavovĂ© dotazy nejsou omezenĂ© prĂˇvy kĂłdu, takĹľe standardnÄ› je vidÄ›t
-  vĹˇe, co ĂşstĹ™edna hlĂˇsĂ­)
-- **PrĂˇva ovlĂˇdĂˇnĂ­** v nastavenĂ­ integrace, zrcadlĂ­cĂ­ prĂˇva pĹ™Ă­stupovĂ©ho kĂłdu z F-Linku:
-  typ ovlĂˇdĂˇnĂ­ sekcĂ­ (plnĂ˝ / jen zakĂłdovat / jen ÄŤtenĂ­), kterĂ© sekce lze ovlĂˇdat a zda/kterĂ©
-  PG vĂ˝stupy lze ovlĂˇdat. ZakĂˇzanĂ© povely se odmĂ­tnou lokĂˇlnÄ› se srozumitelnou chybou, mĂ­sto
-  aby se zkouĹˇely proti ĂşstĹ™ednÄ› (`NO_ACCESS` pokusy by zaplevelily historii udĂˇlostĂ­
+- **Alarm panel** (entita `alarm_control_panel`) pro každou sekci — zapnutí (SET), částečné
+  zapnutí (SETP), vypnutí (UNSET), se správnými stavy HA: `disarmed`, `arming` (odchodové
+  zpoždění), `pending` (příchodové zpoždění), `armed_away`, `armed_home` a `triggered`
+  (poplach vloupání / požár / tíseň)
+- **Switch** pro každý PG výstup (PGON / PGOFF), bez optimismu — stav se přepne až poté,
+  co ho ústředna potvrdí. PG nakonfigurované v F-Linku jako **impuls** stačí uvést
+  v nastavení a vytvoří se místo přepínače jako **tlačítko** (stisk = PGON)
+- **Device triggery** — „Poplach vloupání / Požární / Tísňový / Jakýkoliv" (volitelně pro
+  jednu sekci) vybereš přímo v UI editoru automatizací
+- **Diagnostický sensor** pro každou sekci se surovým stavem JA-121T (`READY`, `ARMED`,
+  `ARMED_PART`, `BLOCKED`, `SERVICE`, …) a aktivními příznaky v atributech
+- **Binary sensor** pro každou periferii (čidlo) dekódovaný z bitmapy `PRFSTATE` — vytvoří se
+  automaticky při první aktivaci, nebo vyber pozice explicitně v nastavení integrace (čísla
+  odpovídají záložce Zařízení v F-Linku, 0 = ústředna). Pozn.: protokol nenese názvy ani typy
+  čidel — entity si přejmenuj v HA
+- **Import z F-Linku** — protokol JA-121T názvy nenese, ale F-Link umí exportovat stránky
+  Sekce / PG výstupy / Zařízení do CSV/TXT. Nahraj tyto exporty v nastavení integrace
+  („Import názvů z F-Linku") a entity dostanou skutečné názvy; z PG exportu se navíc
+  automaticky nastaví seznam impulsních PG (tlačítek) a skryjí nepoužívané výstupy.
+  Čistě lokální, žádný cloud
+- **Filtr entit** v nastavení integrace — vyber, které sekce, PG výstupy a periferie se mají
+  vytvářet jako entity (stavové dotazy nejsou omezené právy kódu, takže standardně je vidět
+  vše, co ústředna hlásí)
+- **Práva ovládání** v nastavení integrace, zrcadlící práva přístupového kódu z F-Linku:
+  typ ovládání sekcí (plný / jen zakódovat / jen čtení), které sekce lze ovládat a zda/které
+  PG výstupy lze ovládat. Zakázané povely se odmítnou lokálně se srozumitelnou chybou, místo
+  aby se zkoušely proti ústředně (`NO_ACCESS` pokusy by zaplevelily historii událostí
   Jablotronu)
-- Sekce a PG vĂ˝stupy se **objevujĂ­ automaticky** ze sbÄ›rnice (poÄŤĂˇteÄŤnĂ­ dotaz
-  `STATE` / `PGSTATE` + spontĂˇnnĂ­ hlĂˇĹˇenĂ­); novĂ© se pĹ™idajĂ­ bez restartu
-- **Push aktualizace** â€” zmÄ›ny sekcĂ­ a PG hlĂˇsĂ­ JA-121T okamĹľitÄ›. Stavy ÄŤidel (PRFSTATE)
-  ĂşstĹ™edna vysĂ­lĂˇ jen cca kaĹľdĂ˝ch 10 s, takĹľe binary sensory ÄŤidel jsou **pouze
-  informativnĂ­** â€” pro automatizace veÄŹ ÄŤidlo v F-Linku pĹ™es PG vĂ˝stup (zmÄ›ny PG chodĂ­
-  okamĹľitÄ›). KaĹľdĂ˝ch 5 minut bÄ›ĹľĂ­ plnĂˇ resynchronizace stavĹŻ, kterĂˇ doĹľene cokoliv
-  ztracenĂ©ho kolizemi na poloduplexnĂ­ lince
-- **AutomatickĂ˝ reconnect** s backoffem, kdyĹľ sĂ©riovĂ˝ port zmizĂ­ (napĹ™. pĹ™epojenĂ­ USB);
-  entity jsou mezitĂ­m `unavailable`
-- Config flow ovÄ›Ĺ™Ă­ spojenĂ­ i pĹ™Ă­stupovĂ˝ kĂłd jeĹˇtÄ› pĹ™ed vytvoĹ™enĂ­m zĂˇznamu;
-  **Znovu nakonfigurovat** umoĹľnĂ­ pozdÄ›ji zmÄ›nit port nebo kĂłd bez ztrĂˇty entit
-- UdĂˇlost **`ja_rs485_alarm`** na sbÄ›rnici HA pĹ™i kaĹľdĂ© zmÄ›nÄ› poplachovĂ©ho pĹ™Ă­znaku sekce â€”
-  ideĂˇlnĂ­ pro push notifikace
-- **Binary sensor stavu spojenĂ­** (`binary_sensor.jablotron_bus_connection`) pro hlĂ­dĂˇnĂ­
-  sĂ©riovĂ© linky
-- **Diagnostika** ke staĹľenĂ­ (pĹ™Ă­stupovĂ˝ kĂłd zaÄŤernÄ›nĂ˝) vÄŤetnÄ› poslednĂ­ch 50 pĹ™ijatĂ˝ch Ĺ™ĂˇdkĹŻ
-  protokolu â€” pĹ™iloĹľ ji, kdyĹľ hlĂˇsĂ­Ĺˇ problĂ©m
-- Entity sekcĂ­ majĂ­ atribut `state_changed_at` (UTC) s ÄŤasem poslednĂ­ hlĂˇĹˇenĂ© zmÄ›ny stavu
+- Sekce a PG výstupy se **objevují automaticky** ze sběrnice (počáteční dotaz
+  `STATE` / `PGSTATE` + spontánní hlášení); nové se přidají bez restartu
+- **Push aktualizace** — změny sekcí a PG hlásí JA-121T okamžitě. Stavy čidel (PRFSTATE)
+  ústředna vysílá jen cca každých 10 s, takže binary sensory čidel jsou **pouze
+  informativní** — pro automatizace veď čidlo v F-Linku přes PG výstup (změny PG chodí
+  okamžitě). Každých 5 minut běží plná resynchronizace stavů, která dožene cokoliv
+  ztraceného kolizemi na poloduplexní lince
+- **Automatický reconnect** s backoffem, když sériový port zmizí (např. přepojení USB);
+  entity jsou mezitím `unavailable`
+- Config flow ověří spojení i přístupový kód ještě před vytvořením záznamu;
+  **Znovu nakonfigurovat** umožní později změnit port nebo kód bez ztráty entit
+- Událost **`ja_rs485_alarm`** na sběrnici HA při každé změně poplachového příznaku sekce —
+  ideální pro push notifikace
+- **Binary sensor stavu spojení** (`binary_sensor.jablotron_bus_connection`) pro hlídání
+  sériové linky
+- **Diagnostika** ke stažení (přístupový kód začerněný) včetně posledních 50 přijatých řádků
+  protokolu — přilož ji, když hlásíš problém
+- Entity sekcí mají atribut `state_changed_at` (UTC) s časem poslední hlášené změny stavu
 
-## BezpeÄŤnostnĂ­ poznĂˇmky
+## Bezpečnostní poznámky
 
-- VeĹˇkerĂˇ komunikace bÄ›ĹľĂ­ ve vyhrazenĂ©m vlĂˇknÄ› â€” nic neblokuje event loop HA.
-- Povely se sklĂˇdajĂ­ vĂ˝hradnÄ› z validovanĂ˝ch ÄŤĂ­sel (sekce 1â€“15, PG 1â€“128); pĹ™Ă­stupovĂ˝ kĂłd mĂˇ
-  omezenou znakovou sadu uĹľ pĹ™i nastavenĂ­. Nic od uĹľivatele nemĹŻĹľe na linku propaĹˇovat dalĹˇĂ­
-  pĹ™Ă­kazy.
-- PĹ™Ă­stupovĂ˝ kĂłd je uloĹľenĂ˝ v config entry HA a **nikdy se nezapisuje do logĹŻ**.
-- **VyhraÄŹ integraci samostatnĂ˝ uĹľivatelskĂ˝ kĂłd** jen s potĹ™ebnĂ˝mi prĂˇvy (kterĂ© sekce smĂ­
-  ovlĂˇdat, kterĂ© PG vĂ˝stupy). KaĹľdĂ˝ povel se zapisuje do historie udĂˇlostĂ­ Jablotronu pod
-  tĂ­mto uĹľivatelem.
-- NeĂşspÄ›ĹˇnĂ© povely (napĹ™. `ERROR: 3 NO_ACCESS`) se logujĂ­ a u zapnutĂ­/vypnutĂ­ se chyba ukĂˇĹľe
-  pĹ™Ă­mo v UI â€” nikdy se nepĹ™edstĂ­rĂˇ ĂşspÄ›ch.
+- Veškerá komunikace běží ve vyhrazeném vlákně — nic neblokuje event loop HA.
+- Povely se skládají výhradně z validovaných čísel (sekce 1–15, PG 1–128); přístupový kód má
+  omezenou znakovou sadu už při nastavení. Nic od uživatele nemůže na linku propašovat další
+  příkazy.
+- Přístupový kód je uložený v config entry HA a **nikdy se nezapisuje do logů**.
+- **Vyhraď integraci samostatný uživatelský kód** jen s potřebnými právy (které sekce smí
+  ovládat, které PG výstupy). Každý povel se zapisuje do historie událostí Jablotronu pod
+  tímto uživatelem.
+- Neúspěšné povely (např. `ERROR: 3 NO_ACCESS`) se logují a u zapnutí/vypnutí se chyba ukáže
+  přímo v UI — nikdy se nepředstírá úspěch.
 
-## PoĹľadavky
+## Požadavky
 
-- Home Assistant 2024.11 nebo novÄ›jĹˇĂ­
-- JA-121T nauÄŤenĂ˝ v ĂşstĹ™ednÄ›, reĹľim **TerminĂˇl** (vĂ˝chozĂ­; nastavuje se v F-Linku â†’
-  VnitĹ™nĂ­ nastavenĂ­)
-- USBâ†”RS-485 pĹ™evodnĂ­k (FTDI / CH340 / CP2102 â€” fungujĂ­ vĹˇechny)
+- Home Assistant 2024.11 nebo novější
+- JA-121T naučený v ústředně, režim **Terminál** (výchozí; nastavuje se v F-Linku →
+  Vnitřní nastavení)
+- USB↔RS-485 převodník (FTDI / CH340 / CP2102 — fungují všechny)
 
-### ZapojenĂ­ (dvÄ› vÄ›ci, kterĂ© kaĹľdĂ˝ zkazĂ­)
+### Zapojení (dvě věci, které každý zkazí)
 
-1. **ExternĂ­ napĂˇjenĂ­ 12 V je povinnĂ©.** RS-485 strana JA-121T je galvanicky oddÄ›lenĂˇ
-   a **nenapĂˇjĂ­ se** ze sbÄ›rnice Jablotronu. PĹ™iveÄŹ **12 V DC** (dle manuĂˇlu 6â€“28 V) na
-   svorky **+U/GND na vĂ˝stupnĂ­ (RS-485) stranÄ›**. Bez nÄ›j je na lince jen Ĺˇum (ojedinÄ›lĂ©
-   rozbitĂ© bajty typu `\x00`).
-2. **Polarita datovĂ˝ch vodiÄŤĹŻ:** JA-121T **A â†’ D+ pĹ™evodnĂ­ku**, **B â†’ Dâ’**, a propoj **GND**
-   vĂ˝stupnĂ­ strany JA-121T se zemĂ­ pĹ™evodnĂ­ku. (ZnaÄŤenĂ­ A/B u RS-485 nenĂ­ standardizovanĂ© â€”
-   pokud s pĹ™ipojenĂ˝m napĂˇjenĂ­m chodĂ­ jen smetĂ­, prohoÄŹ A/B.)
+1. **Externí napájení 12 V je povinné.** RS-485 strana JA-121T je galvanicky oddělená
+   a **nenapájí se** ze sběrnice Jablotronu. Přiveď **12 V DC** (dle manuálu 6–28 V) na
+   svorky **+U/GND na výstupní (RS-485) straně**. Bez něj je na lince jen šum (ojedinělé
+   rozbité bajty typu `\x00`).
+2. **Polarita datových vodičů:** JA-121T **A → D+ převodníku**, **B → D−**, a propoj **GND**
+   výstupní strany JA-121T se zemí převodníku. (Značení A/B u RS-485 není standardizované —
+   pokud s připojeným napájením chodí jen smetí, prohoď A/B.)
 
 ## Instalace
 
-### HACS (doporuÄŤeno)
+### HACS (doporučeno)
 
-[![OtevĹ™e tvou instanci Home Assistanta a zobrazĂ­ tento repozitĂˇĹ™ v HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vlioscz&repository=JA-RS485&category=integration)
+[![Otevře tvou instanci Home Assistanta a zobrazí tento repozitář v HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vlioscz&repository=JA-RS485&category=integration)
 
-Integrace je ve vĂ˝chozĂ­m HACS store: klikni na tlaÄŤĂ­tko vĂ˝Ĺˇe, nebo vyhledej
-**JA-RS485** pĹ™Ă­mo v HACS, stĂˇhni a restartuj Home Assistant.
+Integrace je ve výchozím HACS store: klikni na tlačítko výše, nebo vyhledej
+**JA-RS485** přímo v HACS, stáhni a restartuj Home Assistant.
 
-### RuÄŤnÄ›
+### Ručně
 
-1. ZkopĂ­ruj `custom_components/ja_rs485/` do `config/custom_components/ja_rs485/`.
+1. Zkopíruj `custom_components/ja_rs485/` do `config/custom_components/ja_rs485/`.
 2. Restartuj Home Assistant.
 
-### NastavenĂ­
+### Nastavení
 
-[![OtevĹ™e tvou instanci Home Assistanta a spustĂ­ nastavenĂ­ tĂ©to integrace.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ja_rs485)
+[![Otevře tvou instanci Home Assistanta a spustí nastavení této integrace.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ja_rs485)
 
-1. Klikni na tlaÄŤĂ­tko vĂ˝Ĺˇe, nebo **NastavenĂ­ â†’ ZaĹ™Ă­zenĂ­ a sluĹľby â†’ PĹ™idat integraci â†’ JA-RS485.**
-2. Vyber sĂ©riovĂ˝ port â€” radĹˇi stabilnĂ­ cestu `/dev/serial/by-id/usb-...` neĹľ `/dev/ttyUSB0`
-   (pĹ™eĹľije restarty a pĹ™epojenĂ­) â€” a zadej pĹ™Ă­stupovĂ˝ kĂłd (s prefixem, pokud jej systĂ©m
-   pouĹľĂ­vĂˇ, napĹ™. `1*1234`).
+1. Klikni na tlačítko výše, nebo **Nastavení → Zařízení a služby → Přidat integraci → JA-RS485.**
+2. Vyber sériový port — radši stabilní cestu `/dev/serial/by-id/usb-...` než `/dev/ttyUSB0`
+   (přežije restarty a přepojení) — a zadej přístupový kód (s prefixem, pokud jej systém
+   používá, např. `1*1234`).
 
-## SluĹľby
+## Služby
 
-ZachovanĂ© pro zpÄ›tnou kompatibilitu a automatizace; preferovanĂˇ cesta jsou entity
+Zachované pro zpětnou kompatibilitu a automatizace; preferovaná cesta jsou entity
 alarmu/switche.
 
-| SluĹľba | Povel | Popis |
+| Služba | Povel | Popis |
 |--------|-------|-------|
-| `ja_rs485.set_zone` | `SET n` | Zapne sekci (1â€“15) |
-| `ja_rs485.set_zone_partial` | `SETP n` | ÄŚĂˇsteÄŤnÄ› zapne sekci |
+| `ja_rs485.set_zone` | `SET n` | Zapne sekci (1–15) |
+| `ja_rs485.set_zone_partial` | `SETP n` | Částečně zapne sekci |
 | `ja_rs485.unset_zone` | `UNSET n` | Vypne sekci |
-| `ja_rs485.pgon` | `PGON n` | Zapne PG vĂ˝stup (1â€“128) |
-| `ja_rs485.pgoff` | `PGOFF n` | Vypne PG vĂ˝stup |
+| `ja_rs485.pgon` | `PGON n` | Zapne PG výstup (1–128) |
+| `ja_rs485.pgoff` | `PGOFF n` | Vypne PG výstup |
 
 ## Lovelace dashboard
 
-`dashboards/jablotron_dashboard.yaml` automaticky vygeneruje dlaĹľdice pro vĹˇechny sekce
-(s tlaÄŤĂ­tky zapnout/vypnout) a PG vĂ˝stupy. PotĹ™ebuje jen plugin
+`dashboards/jablotron_dashboard.yaml` automaticky vygeneruje dlaždice pro všechny sekce
+(s tlačítky zapnout/vypnout) a PG výstupy. Potřebuje jen plugin
 [auto-entities](https://github.com/thomasloven/lovelace-auto-entities) (HACS).
 
-## Automatizace na poplachovĂ© udĂˇlosti
+## Automatizace na poplachové události
 
-KaĹľdĂˇ zmÄ›na poplachovĂ©ho pĹ™Ă­znaku vystĹ™elĂ­ udĂˇlost `ja_rs485_alarm` s daty
+Každá změna poplachového příznaku vystřelí událost `ja_rs485_alarm` s daty
 `{"type": "intruder"|"fire"|"panic", "flag": "...", "section": N, "active": true|false}`:
 
 ```yaml
@@ -171,23 +171,23 @@ action:
       message: "Poplach {{ trigger.event.data.type }} v sekci {{ trigger.event.data.section }}"
 ```
 
-## OvÄ›Ĺ™enĂ˝ hardware
+## Ověřený hardware
 
-OvÄ›Ĺ™eno na systĂ©mu JABLOTRON 100+ s JA-121T a USBâ†”RS-485 pĹ™evodnĂ­kem na ÄŤipu FT232R
-(`/dev/ttyUSB0`), zapojenĂ­ Aâ†’D+, Bâ†’Dâ’, GNDâ†”GND, s externĂ­m 12 V DC zdrojem na svorkĂˇch
-+U/GND vĂ˝stupnĂ­ strany modulu. ZapnutĂ­/vypnutĂ­ sekcĂ­, ovlĂˇdĂˇnĂ­ PG i ÄŤtenĂ­ ÄŤidel potvrzeno
-na reĂˇlnĂ©m hardwaru. PraktickĂ© poznatky: zmÄ›ny PG vĂ˝stupĹŻ se propisujĂ­ okamĹľitÄ›, aktualizace
-ÄŤidel (PRFSTATE) chodĂ­ jen cca kaĹľdĂ˝ch 10 s â€” pro automatizace veÄŹ ÄŤidla pĹ™es PG vĂ˝stupy.
+Ověřeno na systému JABLOTRON 100+ s JA-121T a USB↔RS-485 převodníkem na čipu FT232R
+(`/dev/ttyUSB0`), zapojení A→D+, B→D−, GND↔GND, s externím 12 V DC zdrojem na svorkách
++U/GND výstupní strany modulu. Zapnutí/vypnutí sekcí, ovládání PG i čtení čidel potvrzeno
+na reálném hardwaru. Praktické poznatky: změny PG výstupů se propisují okamžitě, aktualizace
+čidel (PRFSTATE) chodí jen cca každých 10 s — pro automatizace veď čidla přes PG výstupy.
 
-## ĹeĹˇenĂ­ problĂ©mĹŻ
+## Řešení problémů
 
-| PĹ™Ă­znak | Co zkontrolovat |
+| Příznak | Co zkontrolovat |
 |---------|-----------------|
-| `invalid_auth` / `NO_ACCESS` v logu | Ĺ patnĂ˝ kĂłd, ĹˇpatnĂ˝ prefix, nebo kĂłd nemĂˇ prĂˇva na danou sekci/PG |
-| `no_response` pĹ™i nastavenĂ­ | ProhozenĂ© vodiÄŤe A/B, chybÄ›jĂ­cĂ­ GND, ĹˇpatnĂ˝ port, nebo JA-121T nenĂ­ v reĹľimu TerminĂˇl |
-| `unexpected_data` / ojedinÄ›lĂ© rozbitĂ© bajty (`\x00`, `\xfc`) v logu | **ChybĂ­ 12 V napĂˇjenĂ­ RS-485 strany (+U/GND)** nebo obrĂˇcenĂˇ polarita A/B |
-| Entity existujĂ­, ale nikdy se neaktualizujĂ­ | V F-Linku je zapnutĂ˝ *PasivnĂ­ reĹľim* â€” vypni ho, aĹĄ modul zmÄ›ny sĂˇm posĂ­lĂˇ |
-| VĹˇechno spadne do `unavailable` | OdpojenĂ˝ USB pĹ™evodnĂ­k; integrace se pĹ™ipojĂ­ sama znovu |
+| `invalid_auth` / `NO_ACCESS` v logu | Špatný kód, špatný prefix, nebo kód nemá práva na danou sekci/PG |
+| `no_response` při nastavení | Prohozené vodiče A/B, chybějící GND, špatný port, nebo JA-121T není v režimu Terminál |
+| `unexpected_data` / ojedinělé rozbité bajty (`\x00`, `\xfc`) v logu | **Chybí 12 V napájení RS-485 strany (+U/GND)** nebo obrácená polarita A/B |
+| Entity existují, ale nikdy se neaktualizují | V F-Linku je zapnutý *Pasivní režim* — vypni ho, ať modul změny sám posílá |
+| Všechno spadne do `unavailable` | Odpojený USB převodník; integrace se připojí sama znovu |
 
 ## Licence
 
