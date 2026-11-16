@@ -96,7 +96,8 @@ linka přece jen spadla, integrace se sama znovu připojí a dá ti o tom vědě
 
 ## Požadavky
 
-- Home Assistant 2024.11 nebo novější
+- Home Assistant 2026.11 nebo novější (starší verze až po 2024.11 mohou použít
+  [release v0.3.2](https://github.com/vlioscz/JA-RS485/releases/tag/v0.3.2))
 - JA-121T naučený v ústředně, režim **Terminál** (výchozí; nastavuje se v F-Linku →
   Vnitřní nastavení)
 - USB↔RS-485 převodník (FTDI / CH340 / CP2102 — fungují všechny)

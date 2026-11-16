@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.3
+
+- Dropped the `pyserial` requirement from the manifest: Home Assistant 2026.11
+  ships pyserial as a core dependency and the hassfest validation now rejects
+  custom integrations that list core dependencies themselves. Minimum Home
+  Assistant version is therefore 2026.11.0 — installations on older versions
+  keep working on 0.3.2, which still installs pyserial on its own.
+
 ## 0.3.2
 
 - Removed an obsolete installation screenshot left over from the original

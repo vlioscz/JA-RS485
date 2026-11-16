@@ -94,7 +94,8 @@ does drop, the integration reconnects by itself and tells you about it
 
 ## Requirements
 
-- Home Assistant 2024.11 or newer
+- Home Assistant 2026.11 or newer (older versions down to 2024.11 can use
+  [release v0.3.2](https://github.com/vlioscz/JA-RS485/releases/tag/v0.3.2))
 - JA-121T enrolled in the control panel, **Terminal** mode (default; set in F-Link â†’ Internal settings)
 - A USBâ†”RS-485 converter (FTDI/CH340/CP2102-based all work)
 
